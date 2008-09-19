@@ -45,9 +45,9 @@ public class TestApp extends javax.swing.JFrame {
             @Override
             protected Void doInBackground() {
                 try {
-                    CopyJob job1 = new CopyJob(true, "/mnt/sda8/ronny",
-                            "/media/sda8/archiv/knoppix/KNOPPIX_V5.3.1DVD-2008-03-26-DE.iso");
-                    fileCopier.copy(job1, job1);
+                    CopyJob copyJob = new CopyJob(true,
+                            "/destination", "/source1/*", "/source2/.*.java");
+                    fileCopier.copy(copyJob);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
