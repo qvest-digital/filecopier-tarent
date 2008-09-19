@@ -2,7 +2,23 @@
  * TestApp.java
  *
  * Created on 22. April 2008, 15:30
+ *
+ * This file is part of the Java File Copy Library.
+ * 
+ * The Java File Copy Libraryis free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3 of the License,
+ * or (at your option) any later version.
+ * 
+ * The Java File Copy Libraryis distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ch.fhnw.filecopier;
 
 import java.util.logging.Level;
@@ -10,8 +26,8 @@ import java.util.logging.Logger;
 import javax.swing.SwingWorker;
 
 /**
- *
- * @author  ronny
+ * A small application for testing the Java File Copy Library.
+ * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
 public class TestApp extends javax.swing.JFrame {
 
@@ -81,6 +97,7 @@ public class TestApp extends javax.swing.JFrame {
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
+            @Override
             public void run() {
                 new TestApp().setVisible(true);
             }

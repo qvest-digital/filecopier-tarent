@@ -7,15 +7,36 @@
     <import file="nbproject/build-impl.xml"/>
     
     <!-- Our own Jar Building Target -->
-    <target
-        depends="init,compile,-pre-jar,-do-jar-with-manifest,-do-jar-without-manifest,-do-jar-with-mainclass,-do-jar-with-libraries,-post-jar,bin-jar,full-jar"
-        description="Build JAR." name="jar"/>
-    <target name="bin-jar" depends="init,compile,-pre-pre-jar">
-        <jar compress="true" destfile="dist/FileCopier_bin.jar"
-        basedir="build/classes/" excludes="ch/fhnw/filecopier/TestApp*"/>
-    </target>
-    <target name="full-jar" depends="init,compile,-pre-pre-jar">
-        <jar destfile="dist/FileCopier_full.jar" basedir="build/classes/"/>
-        <jar destfile="dist/FileCopier_full.jar" basedir="src" update="true"/>
+    <target name="jar" depends="init,compile,-javadoc-build" description="Build JAR.">
+        
+        <!-- Increase build number and timestamp -->
+        <buildnumber file="src/ch/fhnw/filecopier/build.number"/>
+        <propertyfile file="src/ch/fhnw/filecopier/build.number">
+            <entry  key="timestamp" type="date" value="now" pattern="yyyyMMddHHmmss"/>
+        </propertyfile>
+        <copy
+            file="src/ch/fhnw/filecopier/build.number"
+            tofile="build/classes/ch/fhnw/filecopier/build.number"
+            overwrite="true"/>
+        
+        <!-- load the properties to get access to the Java File Copy Library
+        version -->
+        <property file="src/ch/fhnw/filecopier/build.number"/>
+        
+        <!-- library distribution (only class files, no examples) -->
+        <jar
+            destfile="dist/java_file_copy_library-${jfcl_version}.jar"
+            basedir="build/classes/"
+            excludes="ch/fhnw/filecopier/TestApp*, ch/fhnw/filecopier/TODO_FileCopier.txt"/>
+        <!-- copy to a file without version in name so that findbugs must not be reconfigured -->
+        <copy
+            file="dist/java_file_copy_library-${jfcl_version}.jar"
+            tofile="dist/java_file_copy_library.jar"
+            overwrite="true"/>
+        
+        <!-- complete distribution (including class files, examples, source and javadoc) -->
+        <jar destfile="dist/java_file_copy_library-${jfcl_version}_all.jar" basedir="build/classes/"/>
+        <jar destfile="dist/java_file_copy_library-${jfcl_version}_all.jar" basedir="src/" update="true"/>
+        <jar destfile="dist/java_file_copy_library-${jfcl_version}_all.jar" basedir="dist/javadoc" update="true"/>
     </target>
 </project>
