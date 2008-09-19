@@ -1,3 +1,24 @@
+/*
+ * FileCopier.java
+ *
+ * Created on 19.09.2008, 15:37:49
+ *
+ * This file is part of the Java File Copy Library.
+ * 
+ * The Java File Copy Libraryis free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3 of the License,
+ * or (at your option) any later version.
+ * 
+ * The Java File Copy Libraryis distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package ch.fhnw.filecopier;
 
 import java.beans.PropertyChangeListener;
@@ -15,7 +36,7 @@ import java.util.regex.Pattern;
 /**
  * A class for copying files and directories. It can be used headless.
  * This class is NOT threadsafe!
- * @author ronny
+ * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
 public class FileCopier {
 

@@ -2,7 +2,23 @@
  * FileCopierPanel.java
  *
  * Created on 22. April 2008, 14:21
+ *
+ * This file is part of the Java File Copy Library.
+ * 
+ * The Java File Copy Libraryis free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3 of the License,
+ * or (at your option) any later version.
+ * 
+ * The Java File Copy Libraryis distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ch.fhnw.filecopier;
 
 import java.awt.event.ActionEvent;
@@ -20,8 +36,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
- *
- * @author  ronny
+ * A JPanel that can show the progress of file copy operations.
+ * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
 public class FileCopierPanel extends JPanel implements PropertyChangeListener {
 
@@ -47,6 +63,7 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
     private long startTime;
     private Timer remainigTimer = new Timer(1000, new ActionListener() {
 
+        @Override
         public void actionPerformed(ActionEvent e) {
             bytesCopied = fileCopier.getCopiedBytes();
             if (bytesCopied == 0) {
@@ -176,10 +193,11 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JLabel remainingLabel;
     // End of variables declaration//GEN-END:variables
-
+    @Override
     public void propertyChange(final PropertyChangeEvent evt) {
         SwingUtilities.invokeLater(new Runnable() {
 
+            @Override
             public void run() {
                 String propertyName = evt.getPropertyName();
                 if (FileCopier.STATE_PROPERTY.equals(propertyName)) {
