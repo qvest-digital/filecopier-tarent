@@ -1,0 +1,29 @@
+- overwrite single file does not work, when second job
+  cp /datei1 /datei2
+
+- unit tests schreiben (alle wenn möglich rekursiv und nicht rekursiv)
+    - einzelne Datei in Verzeichnis                 (x)
+    - leeres Verzeichnis in Verzeichnis             (x)
+    - leeres Verzeichnis in Datei                   (x)
+    - volles Verzeichnis in Verzeichnis             (x)
+    - volles Verzeichnis in Datei                   ( )
+    - RegEx in Verzeichnis                          ( )
+    - RegEx in Datei                                ( )
+
+- unit tests mit (nicht) existierenden Zielen
+
+- is reset() really necessary? (one synced copy operation is good enough)
+
+- fifos und symlinks testen
+
+- option "overwrite existing files"
+
+- regex mit "|" in source wird nicht funktionieren...
+
+- i18n für exceptions in FileCopier
+
+- timer läuft bei exception weiter (z.B. wenn datei aufgrund fehlender
+Berechtigung nicht gelesen werden kann)
+
+- multiple targets?
+    - bespielen von mehreren USB-Sticks auf einmal oder nacheinander...
