@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<project name="FileCopier" default="default" basedir=".">
+    <description>Builds, tests, and runs the project FileCopier.</description>
+    <import file="nbproject/build-impl.xml"/>
+    
+    <!-- Our own Jar Building Target -->
+    <target
+        depends="init,compile,-pre-jar,-do-jar-with-manifest,-do-jar-without-manifest,-do-jar-with-mainclass,-do-jar-with-libraries,-post-jar,bin-jar,full-jar"
+        description="Build JAR." name="jar"/>
+    <target name="bin-jar" depends="init,compile,-pre-pre-jar">
+        <jar compress="true" destfile="dist/FileCopier_bin.jar"
+        basedir="build/classes/" excludes="ch/fhnw/filecopier/TestApp*"/>
+    </target>
+    <target name="full-jar" depends="init,compile,-pre-pre-jar">
+        <jar destfile="dist/FileCopier_full.jar" basedir="build/classes/"/>
+        <jar destfile="dist/FileCopier_full.jar" basedir="src" update="true"/>
+    </target>
+</project>
