@@ -156,6 +156,9 @@ public class FileCopier {
         // scan all sources of all copyJobs and store the directoryInfos
         int fileCount = 0;
         for (CopyJob copyJob : copyJobs) {
+            if (copyJob == null) {
+                continue;
+            }
             String[] sources = copyJob.getSources();
             List<DirectoryInfo> directoryInfos = new ArrayList<DirectoryInfo>();
             for (String source : sources) {

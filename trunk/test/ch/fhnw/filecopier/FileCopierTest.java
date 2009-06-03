@@ -60,6 +60,15 @@ public class FileCopierTest {
     }
 
     /**
+     * test, if we correctly handle empty copy jobs
+     * @throws Exception if an exception occurs
+     */
+    @Test
+    public void testEmptyJob() throws Exception {
+        fileCopier.copy((CopyJob)null);
+    }
+
+    /**
      * test, if we correctly copy symlinks
      * @throws Exception if an exception occurs
      */
