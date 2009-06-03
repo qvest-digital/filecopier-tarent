@@ -197,6 +197,9 @@ public class FileCopier {
 
         // execute all copy jobs
         for (CopyJob copyJob : copyJobs) {
+            if (copyJob == null) {
+                continue;
+            }
             List<DirectoryInfo> directoryInfos = copyJob.getDirectoryInfos();
             String destination = copyJob.getDestination();
             File destinationFile = new File(destination);

@@ -65,7 +65,41 @@ public class FileCopierTest {
      */
     @Test
     public void testEmptyJob() throws Exception {
-        fileCopier.copy((CopyJob)null);
+
+        // try a single empty job
+        fileCopier.copy((CopyJob) null);
+
+        // try a normal and an empty job
+        File singleFile = new File(sourceDir, "singleFile");
+        try {
+            if (!singleFile.createNewFile()) {
+                fail("could not create test file " + singleFile);
+            }
+            FileWriter fileWriter = new FileWriter(singleFile);
+            fileWriter.write("something not important");
+            fileWriter.flush();
+            fileWriter.close();
+        } catch (IOException ex) {
+            System.out.println("Could not create " + singleFile);
+            throw ex;
+        }
+        CopyJob copyJob = new CopyJob(
+                true, destinationDir.getPath(), sourceDir.getPath() + "/.*");
+        fileCopier.copy(copyJob, (CopyJob) null);
+
+        File expectedFile = new File(destinationDir, singleFile.getName());
+        if (!singleFile.delete()) {
+            fail("could not delete single file " + singleFile);
+        }
+        if (!sourceDir.delete()) {
+            fail("could not delete source dir " + sourceDir);
+        }
+        if (!expectedFile.delete()) {
+            fail("could not delete destination file " + expectedFile);
+        }
+        if (!destinationDir.delete()) {
+            fail("could not delete destination dir " + destinationDir);
+        }
     }
 
     /**
