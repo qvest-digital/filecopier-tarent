@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ch.fhnw.filecopier;
 
 import java.beans.PropertyChangeListener;
@@ -31,6 +30,8 @@ import java.nio.channels.FileChannel;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -85,10 +86,11 @@ public class FileCopier {
     private final char[] regExChars = new char[]{
         '+', '(', ')', '^', '$', '.', '{', '}', '[', ']', '|', '\\'
     };
-    private boolean debug = true;
     private long slice = 1048576; // one Meg
     private int updateTime = 1000; // the intervall we want to get
     private final static NumberFormat numberFormat = NumberFormat.getInstance();
+    private final static Logger logger =
+            Logger.getLogger(FileCopier.class.getName());
 
     /**
      * Add a listener for property changes.
@@ -171,13 +173,13 @@ public class FileCopier {
                 }
             }
             copyJob.setDirectoryInfos(directoryInfos);
-            if (debug) {
-                System.out.println("\n\nsource files:");
+            if (logger.isLoggable(Level.INFO)) {
+                logger.info("\n\nsource files:");
                 for (DirectoryInfo directoryInfo : directoryInfos) {
-                    System.out.println("source files in base directory " +
+                    logger.info("source files in base directory " +
                             directoryInfo.getBaseDirectory() + ':');
                     for (File sourceFile : directoryInfo.getFiles()) {
-                        System.out.println((sourceFile.isFile() ? "f " : "d ") +
+                        logger.info((sourceFile.isFile() ? "f " : "d ") +
                                 sourceFile.getPath());
                     }
                 }
@@ -185,7 +187,7 @@ public class FileCopier {
         }
 
         if (fileCount == 0) {
-            System.out.println("there are no files to copy");
+            logger.info("there are no files to copy");
             return;
         }
 
@@ -296,15 +298,11 @@ public class FileCopier {
                         new File(destinationDir, destinationPath);
                 if (sourceFile.isDirectory()) {
                     if (destinationFile.exists()) {
-                        if (debug) {
-                            System.out.println("Directory \"" +
-                                    destinationFile + "\" already exists");
-                        }
+                        logger.info("Directory \"" +
+                                destinationFile + "\" already exists");
                     } else {
-                        if (debug) {
-                            System.out.println("Creating directory \"" +
-                                    destinationFile + "\"");
-                        }
+                        logger.info("Creating directory \"" +
+                                destinationFile + "\"");
                         if (!destinationFile.mkdirs()) {
                             throw new IOException(
                                     "Could not create directory \"" +
@@ -370,27 +368,25 @@ public class FileCopier {
     private DirectoryInfo expand(File baseDirectory,
             Pattern pattern, boolean recursive) {
 
-        if (debug) {
-            System.out.println("baseDirectory: " + baseDirectory +
-                    " pattern: \"" + pattern + "\"");
-        }
+        logger.info("baseDirectory: " + baseDirectory +
+                " pattern: \"" + pattern + "\"");
 
         // feed the listeners
         propertyChangeSupport.firePropertyChange(
                 FILE_PROPERTY, null, baseDirectory);
 
         if (!baseDirectory.exists()) {
-            System.out.println(baseDirectory + " does not exist");
+            logger.warning(baseDirectory + " does not exist");
             return null;
         }
 
         if (!baseDirectory.isDirectory()) {
-            System.out.println(baseDirectory + " is no directory");
+            logger.warning(baseDirectory + " is no directory");
             return null;
         }
 
         if (!baseDirectory.canRead()) {
-            System.out.println("can not read " + baseDirectory);
+            logger.warning("can not read " + baseDirectory);
             return null;
         }
 
@@ -398,16 +394,12 @@ public class FileCopier {
             throw new IllegalArgumentException("pattern must not be null");
         }
 
-        if (debug) {
-            System.out.println("recursing directory " + baseDirectory);
-        }
+        logger.fine("recursing directory " + baseDirectory);
         long tmpByteCount = 0;
         List<File> files = new ArrayList<File>();
         for (File subFile : baseDirectory.listFiles()) {
             if (pattern.matcher(subFile.getPath()).matches()) {
-                if (debug) {
-                    System.out.println(subFile + " matches");
-                }
+                logger.fine(subFile + " matches");
                 if (subFile.isDirectory()) {
                     if (recursive) {
                         files.add(subFile);
@@ -419,18 +411,14 @@ public class FileCopier {
                             tmpByteCount += tmpInfo.getByteCount();
                         }
                     } else {
-                        if (debug) {
-                            System.out.println("skipping directory " + subFile);
-                        }
+                        logger.fine("skipping directory " + subFile);
                     }
                 } else {
                     files.add(subFile);
                     tmpByteCount += subFile.length();
                 }
             } else {
-                if (debug) {
-                    System.out.println(subFile + " does not match");
-                }
+                logger.fine(subFile + " does not match");
             }
         }
         return new DirectoryInfo(baseDirectory, files, tmpByteCount);
@@ -438,8 +426,8 @@ public class FileCopier {
 
     private void copyFile(File source, File destination)
             throws IOException {
-        System.out.println("Copying file \"" + source +
-                "\" to \"" + destination + "\"");
+        logger.info(
+                "Copying file \"" + source + "\" to \"" + destination + "\"");
         if (!destination.exists()) {
             destination.createNewFile();
         }
@@ -456,8 +444,7 @@ public class FileCopier {
 
         // start with a slice of one megabyte
         for (long position = 0; position < fileLength;) {
-            System.out.print(
-                    "slice = " + numberFormat.format(slice) + " Byte");
+            logger.finest("slice = " + numberFormat.format(slice) + " Byte");
             // actually copy data
             long start = System.currentTimeMillis();
             long transferredBytes = destinationChannel.transferFrom(
@@ -482,10 +469,10 @@ public class FileCopier {
                     }
                 }
             } else {
-                System.out.print(", transferredBytes = " +
+                logger.info(", transferredBytes = " +
                         numberFormat.format(transferredBytes) + " Byte");
             }
-            System.out.println(", time = " + numberFormat.format(time) + " ms");
+            logger.info(", time = " + numberFormat.format(time) + " ms");
 
             position += transferredBytes;
             copiedBytes += transferredBytes;
