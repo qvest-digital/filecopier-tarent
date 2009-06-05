@@ -368,7 +368,7 @@ public class FileCopier {
     private DirectoryInfo expand(File baseDirectory,
             Pattern pattern, boolean recursive) {
 
-        logger.info("baseDirectory: " + baseDirectory +
+        logger.info("base directory: " + baseDirectory +
                 " pattern: \"" + pattern + "\"");
 
         // feed the listeners
@@ -469,10 +469,10 @@ public class FileCopier {
                     }
                 }
             } else {
-                logger.info(", transferredBytes = " +
+                logger.finest("transferredBytes = " +
                         numberFormat.format(transferredBytes) + " Byte");
             }
-            logger.info(", time = " + numberFormat.format(time) + " ms");
+            logger.finest("time = " + numberFormat.format(time) + " ms");
 
             position += transferredBytes;
             copiedBytes += transferredBytes;
