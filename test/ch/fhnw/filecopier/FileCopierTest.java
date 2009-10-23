@@ -18,13 +18,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ch.fhnw.filecopier;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -57,6 +63,88 @@ public class FileCopierTest {
         if (!destinationDir.exists() && !destinationDir.mkdir()) {
             fail("could not create destination dir " + destinationDir);
         }
+    }
+
+    /**
+     * test, if we correctly handle empty copy jobs
+     * @throws Exception if an exception occurs
+     */
+    @Test
+    public void testMultipleDestinations() throws Exception {
+
+        // create a large (3 MiB) random source file
+        int testSize = 3 * 1024 * 1024;
+        byte[] data = new byte[testSize];
+        Random random = new Random();
+        random.nextBytes(data);
+        File sourceFile = new File(sourceDir, "sourceFile");
+        FileOutputStream fileOutputStream = new FileOutputStream(sourceFile);
+        fileOutputStream.write(data);
+        fileOutputStream.close();
+
+        // create a second destination directory
+        File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+        File destinationDir2 = new File(tmpDir, "testDestinationDir2");
+        if (!destinationDir2.exists() && !destinationDir2.mkdir()) {
+            fail("could not create destination dir " + destinationDir2);
+        }
+
+        // copy source file in both destination directories
+        CopyJob copyJob = new CopyJob(
+                new String[]{sourceFile.getPath()},
+                new String[]{
+                    destinationDir.getPath(),
+                    destinationDir2.getPath()},
+                true);
+        fileCopier.copy(copyJob);
+
+        // check both destination files
+        File expected1 = new File(destinationDir, "sourceFile");
+        boolean exists1 = expected1.exists();
+        boolean isFile1 = expected1.isFile();
+        BufferedInputStream bufferedInputStream =
+                new BufferedInputStream(new FileInputStream(expected1));
+        byte[] expectedData1 = new byte[testSize];
+        bufferedInputStream.read(expectedData1);
+        boolean contentMatch1 = Arrays.equals(data, expectedData1);
+        File expected2 = new File(destinationDir2, "sourceFile");
+        boolean exists2 = expected2.exists();
+        boolean isFile2 = expected2.isFile();
+        bufferedInputStream =
+                new BufferedInputStream(new FileInputStream(expected2));
+        byte[] expectedData2 = new byte[testSize];
+        bufferedInputStream.read(expectedData2);
+        boolean contentMatch2 = Arrays.equals(data, expectedData2);
+
+        // cleanup
+        if (!sourceFile.delete()) {
+            fail("could not delete source file " + sourceFile);
+        }
+        if (!sourceDir.delete()) {
+            fail("could not delete source dir " + sourceDir);
+        }
+        if (!expected1.delete()) {
+            fail("could not delete destination file " + expected1);
+        }
+        if (!destinationDir.delete()) {
+            fail("could not delete destination dir " + destinationDir);
+        }
+        if (!expected2.delete()) {
+            fail("could not delete destination file " + expected2);
+        }
+        if (!destinationDir2.delete()) {
+            fail("could not delete destination dir " + destinationDir2);
+        }
+
+        // final check
+        assertTrue("first destination file was not created", exists1);
+        assertTrue("first destination file is no file", isFile1);
+        assertTrue("first destination file content does not match source file",
+                contentMatch1);
+        assertTrue("second destination file was not created", exists2);
+        assertTrue("second destination file is no file", isFile2);
+        assertTrue("second destination file content does not match source file",
+                contentMatch2);
     }
 
     /**
