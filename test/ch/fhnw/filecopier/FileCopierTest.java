@@ -83,8 +83,8 @@ public class FileCopierTest {
             System.out.println("Could not create " + singleFile);
             throw ex;
         }
-        CopyJob copyJob = new CopyJob(
-                true, destinationDir.getPath(), sourceDir.getPath() + "/.*");
+        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath() + "/.*"},
+                new String[]{destinationDir.getPath()}, true);
         fileCopier.copy(copyJob, (CopyJob) null);
 
         File expectedFile = new File(destinationDir, singleFile.getName());
@@ -135,8 +135,8 @@ public class FileCopierTest {
                 '\"', 0, exitValue);
 
         // copy file and symlink
-        CopyJob copyJob = new CopyJob(
-                true, destinationDir.getPath(), sourceDir.getPath() + "/.*");
+        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath() + "/.*"},
+                new String[]{destinationDir.getPath()}, true);
         fileCopier.copy(copyJob);
 
         // check
@@ -230,10 +230,10 @@ public class FileCopierTest {
         }
 
         // try copying the test files
-        CopyJob copyJob1 = new CopyJob(false,
-                existingDestinationFile1.getPath(), singleFile.getPath());
-        CopyJob copyJob2 = new CopyJob(false,
-                existingDestinationFile2.getPath(), singleFile.getPath());
+        CopyJob copyJob1 = new CopyJob(new String[]{singleFile.getPath()},
+                new String[]{existingDestinationFile1.getPath()}, false);
+        CopyJob copyJob2 = new CopyJob(new String[]{singleFile.getPath()},
+                new String[]{existingDestinationFile2.getPath()}, false);
         fileCopier.copy(copyJob1, copyJob2);
 
         // check
@@ -307,8 +307,8 @@ public class FileCopierTest {
         }
 
         // try copying the test file
-        CopyJob copyJob = new CopyJob(
-                false, existingDestinationFile.getPath(), singleFile.getPath());
+        CopyJob copyJob = new CopyJob(new String[]{singleFile.getPath()},
+                new String[]{existingDestinationFile.getPath()}, false);
         fileCopier.copy(copyJob);
 
         // check
@@ -359,9 +359,11 @@ public class FileCopierTest {
 
         // try copying the test file
         final String NEW_NAME = "newName";
-        CopyJob copyJob = new CopyJob(false,
-                destinationDir.getPath() + File.separatorChar + NEW_NAME,
-                singleFile.getPath());
+        CopyJob copyJob = new CopyJob(
+                new String[]{singleFile.getPath()},
+                new String[]{
+                    destinationDir.getPath() + File.separatorChar + NEW_NAME},
+                false);
         fileCopier.copy(copyJob);
 
         // check
@@ -397,8 +399,8 @@ public class FileCopierTest {
     public void testCopyingEmptySourceDirRecursive() throws Exception {
 
         // try copying the empty directory
-        CopyJob copyJob = new CopyJob(
-                true, destinationDir.getPath(), sourceDir.getPath());
+        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath()},
+                new String[]{destinationDir.getPath()}, true);
         fileCopier.copy(copyJob);
 
         // check
@@ -429,8 +431,8 @@ public class FileCopierTest {
     @Test
     public void testCopyingEmptySourceDirNonRecursive() throws Exception {
         // try copying the empty directory
-        CopyJob copyJob = new CopyJob(
-                false, destinationDir.getPath(), sourceDir.getPath());
+        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath()},
+                new String[]{destinationDir.getPath()}, false);
         fileCopier.copy(copyJob);
 
         // check
@@ -474,8 +476,8 @@ public class FileCopierTest {
         }
 
         // try copying the test file
-        CopyJob copyJob = new CopyJob(
-                recursive, destinationDir.getPath(), singleFile.getPath());
+        CopyJob copyJob = new CopyJob(new String[]{singleFile.getPath()},
+                new String[]{destinationDir.getPath()}, recursive);
         fileCopier.copy(copyJob);
 
         // check
@@ -517,13 +519,13 @@ public class FileCopierTest {
         }
         try {
             // try copying the test file
-            CopyJob copyJob = new CopyJob(
-                    true, destinationFile.getPath(), sourceDir.getPath());
+            CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath()},
+                    new String[]{destinationFile.getPath()}, true);
             fileCopier.copy(copyJob);
             fail("this test must throw an exception");
         } catch (IOException ex) {
             ex.printStackTrace();
-        // yes, we want an exception here!
+            // yes, we want an exception here!
         }
 
         // test
@@ -566,8 +568,8 @@ public class FileCopierTest {
         }
 
         // try copying the source directory (recursive)
-        CopyJob copyJob = new CopyJob(
-                true, destinationDir.getPath(), sourceDir.getPath());
+        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath()},
+                new String[]{destinationDir.getPath()}, true);
         fileCopier.copy(copyJob);
 
         // check
@@ -611,8 +613,9 @@ public class FileCopierTest {
     public void testPathSeparator() throws Exception {
 
         // try copying the empty directory
-        CopyJob copyJob = new CopyJob(true, destinationDir.getPath(),
-                sourceDir.getPath() + File.separatorChar);
+        CopyJob copyJob = new CopyJob(
+                new String[]{sourceDir.getPath() + File.separatorChar},
+                new String[]{destinationDir.getPath()}, true);
         fileCopier.copy(copyJob);
 
         // check
