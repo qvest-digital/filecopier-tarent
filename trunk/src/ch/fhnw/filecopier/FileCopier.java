@@ -30,6 +30,10 @@ import java.nio.channels.FileChannel;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -78,6 +82,8 @@ public class FileCopier {
         END
     }
     private State state = State.START;
+    private final static Logger LOGGER =
+            Logger.getLogger(FileCopier.class.getName());
     private final PropertyChangeSupport propertyChangeSupport =
             new PropertyChangeSupport(this);
     private long byteCount;
@@ -86,11 +92,16 @@ public class FileCopier {
     private final char[] regExChars = new char[]{
         '+', '(', ')', '^', '$', '.', '{', '}', '[', ']', '|', '\\'
     };
-    private long slice = 1048576; // one Meg
     private int updateTime = 1000; // the intervall we want to get
-    private final static NumberFormat numberFormat = NumberFormat.getInstance();
-    private final static Logger logger =
-            Logger.getLogger(FileCopier.class.getName());
+    private final static NumberFormat NUMBER_FORMAT =
+            NumberFormat.getInstance();
+    private FileChannel sourceChannel;
+    private long position;
+    private long sourceLength;
+    private long slice = 1048576; // 1 MiB
+    private long transferVolume;
+    private long sliceStartTime;
+    private CyclicBarrier barrier;
 
     /**
      * Add a listener for property changes.
@@ -173,13 +184,13 @@ public class FileCopier {
                 }
             }
             copyJob.setDirectoryInfos(directoryInfos);
-            if (logger.isLoggable(Level.INFO)) {
-                logger.info("\n\nsource files:");
+            if (LOGGER.isLoggable(Level.INFO)) {
+                LOGGER.info("\n\nsource files:");
                 for (DirectoryInfo directoryInfo : directoryInfos) {
-                    logger.info("source files in base directory " +
+                    LOGGER.info("source files in base directory " +
                             directoryInfo.getBaseDirectory() + ':');
                     for (File sourceFile : directoryInfo.getFiles()) {
-                        logger.info((sourceFile.isFile() ? "f " : "d ") +
+                        LOGGER.info((sourceFile.isFile() ? "f " : "d ") +
                                 sourceFile.getPath());
                     }
                 }
@@ -187,7 +198,7 @@ public class FileCopier {
         }
 
         if (fileCount == 0) {
-            logger.info("there are no files to copy");
+            LOGGER.info("there are no files to copy");
             return;
         }
 
@@ -203,8 +214,7 @@ public class FileCopier {
                 continue;
             }
             List<DirectoryInfo> directoryInfos = copyJob.getDirectoryInfos();
-            String destination = copyJob.getDestination();
-            File destinationFile = new File(destination);
+            String[] destinations = copyJob.getDestination();
             // get number of source files in this job
             int sourceCount = 0;
             for (DirectoryInfo directoryInfo : directoryInfos) {
@@ -218,56 +228,63 @@ public class FileCopier {
                 case 1:
                     // we only have a single source file in this job
                     File sourceFile = directoryInfos.get(0).getFiles().get(0);
-                    if (destinationFile.exists()) {
-                        if (destinationFile.isDirectory()) {
-                            // copy sourceFile to destination directory
-                            copyFilesToDirectory(directoryInfos, destinationFile);
-                        } else {
-                            if (sourceFile.isDirectory()) {
-                                throw new IOException(
-                                        "can not overwrite file \"" + destinationFile +
-                                        "\" with directory \"" + sourceFile + "\"");
+                    for (String destination : destinations) {
+                        File destinationFile = new File(destination);
+
+                        if (destinationFile.exists()) {
+                            if (destinationFile.isDirectory()) {
+                                // copy sourceFile to destination directory
+                                copyFilesToDirectory(directoryInfos, destinationFile);
                             } else {
-                                // overwrite destinationFile with sourceFile
-                                copyFile(sourceFile, destinationFile);
+                                if (sourceFile.isDirectory()) {
+                                    throw new IOException(
+                                            "can not overwrite file \"" + destinationFile +
+                                            "\" with directory \"" + sourceFile + "\"");
+                                } else {
+                                    // overwrite destinationFile with sourceFile
+                                    copyFile(sourceFile, destinationFile);
+                                }
                             }
+                        } else {
+                            // create copy of sourceFile at destinationFile
+                            copyFile(sourceFile, destinationFile);
                         }
-                    } else {
-                        // create copy of sourceFile at destinationFile
-                        copyFile(sourceFile, destinationFile);
                     }
                     break;
 
                 default:
                     // we have several source files (the target MUST be a directory)
-                    if (destinationFile.exists()) {
-                        if (destinationFile.isDirectory()) {
-                            // copy all files into target directory
-                            copyFilesToDirectory(directoryInfos, destinationFile);
-                        } else {
-                            StringBuilder errorMessage = new StringBuilder(
-                                    "can not copy several files to another file\n" +
-                                    " sources:");
-                            for (DirectoryInfo directoryInfo : directoryInfos) {
-                                List<File> files = directoryInfo.getFiles();
-                                for (File file : files) {
-                                    errorMessage.append("  " + file.getPath());
+                    for (String destination : destinations) {
+                        File destinationFile = new File(destination);
+                        if (destinationFile.exists()) {
+                            if (destinationFile.isDirectory()) {
+                                // copy all files into target directory
+                                copyFilesToDirectory(directoryInfos, destinationFile);
+                            } else {
+                                StringBuilder errorMessage = new StringBuilder(
+                                        "can not copy several files to another file\n" +
+                                        " sources:");
+                                for (DirectoryInfo directoryInfo : directoryInfos) {
+                                    List<File> files = directoryInfo.getFiles();
+                                    for (File file : files) {
+                                        errorMessage.append("  " + file.getPath());
+                                    }
                                 }
+                                errorMessage.append(
+                                        " destination: " + destinationFile.getPath());
+                                throw new IOException(errorMessage.toString());
                             }
-                            errorMessage.append(
-                                    " destination: " + destinationFile.getPath());
-                            throw new IOException(errorMessage.toString());
-                        }
-                    } else {
-                        // destination does not exist
-                        // we create it as the target directory...
-                        if (destinationFile.mkdirs()) {
-                            // copy all files into target directory
-                            copyFilesToDirectory(directoryInfos, destinationFile);
                         } else {
-                            throw new IOException(
-                                    "can not create target directory " +
-                                    destination);
+                            // destination does not exist
+                            // we create it as the target directory...
+                            if (destinationFile.mkdirs()) {
+                                // copy all files into target directory
+                                copyFilesToDirectory(directoryInfos, destinationFile);
+                            } else {
+                                throw new IOException(
+                                        "can not create target directory " +
+                                        destination);
+                            }
                         }
                     }
             }
@@ -298,10 +315,10 @@ public class FileCopier {
                         new File(destinationDir, destinationPath);
                 if (sourceFile.isDirectory()) {
                     if (destinationFile.exists()) {
-                        logger.info("Directory \"" +
+                        LOGGER.info("Directory \"" +
                                 destinationFile + "\" already exists");
                     } else {
-                        logger.info("Creating directory \"" +
+                        LOGGER.info("Creating directory \"" +
                                 destinationFile + "\"");
                         if (!destinationFile.mkdirs()) {
                             throw new IOException(
@@ -368,7 +385,7 @@ public class FileCopier {
     private DirectoryInfo expand(File baseDirectory,
             Pattern pattern, boolean recursive) {
 
-        logger.info("base directory: " + baseDirectory +
+        LOGGER.info("base directory: " + baseDirectory +
                 " pattern: \"" + pattern + "\"");
 
         // feed the listeners
@@ -376,17 +393,17 @@ public class FileCopier {
                 FILE_PROPERTY, null, baseDirectory);
 
         if (!baseDirectory.exists()) {
-            logger.warning(baseDirectory + " does not exist");
+            LOGGER.warning(baseDirectory + " does not exist");
             return null;
         }
 
         if (!baseDirectory.isDirectory()) {
-            logger.warning(baseDirectory + " is no directory");
+            LOGGER.warning(baseDirectory + " is no directory");
             return null;
         }
 
         if (!baseDirectory.canRead()) {
-            logger.warning("can not read " + baseDirectory);
+            LOGGER.warning("can not read " + baseDirectory);
             return null;
         }
 
@@ -394,12 +411,12 @@ public class FileCopier {
             throw new IllegalArgumentException("pattern must not be null");
         }
 
-        logger.fine("recursing directory " + baseDirectory);
+        LOGGER.fine("recursing directory " + baseDirectory);
         long tmpByteCount = 0;
         List<File> files = new ArrayList<File>();
         for (File subFile : baseDirectory.listFiles()) {
             if (pattern.matcher(subFile.getPath()).matches()) {
-                logger.fine(subFile + " matches");
+                LOGGER.fine(subFile + " matches");
                 if (subFile.isDirectory()) {
                     if (recursive) {
                         files.add(subFile);
@@ -411,52 +428,76 @@ public class FileCopier {
                             tmpByteCount += tmpInfo.getByteCount();
                         }
                     } else {
-                        logger.fine("skipping directory " + subFile);
+                        LOGGER.fine("skipping directory " + subFile);
                     }
                 } else {
                     files.add(subFile);
                     tmpByteCount += subFile.length();
                 }
             } else {
-                logger.fine(subFile + " does not match");
+                LOGGER.fine(subFile + " does not match");
             }
         }
         return new DirectoryInfo(baseDirectory, files, tmpByteCount);
     }
 
-    private void copyFile(File source, File destination)
+    private void copyFile(File source, File... destinations)
             throws IOException {
-        logger.info(
-                "Copying file \"" + source + "\" to \"" + destination + "\"");
-        if (!destination.exists()) {
-            destination.createNewFile();
+
+        // some initial logging
+        if (LOGGER.isLoggable(Level.INFO)) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("Copying file \"");
+            stringBuilder.append(source.toString());
+            stringBuilder.append("\" to the following destinations:\n");
+            for (File destination : destinations) {
+                stringBuilder.append(destination.getPath());
+                stringBuilder.append('\n');
+            }
+            LOGGER.info(stringBuilder.toString());
         }
 
-        long fileLength = source.length();
-        if (fileLength == 0) {
-            // source is an empty file
+        // ensure that all destination files exist before starting the transfer
+        // processing
+        for (File destination : destinations) {
+            if (!destination.exists()) {
+                destination.createNewFile();
+            }
+        }
+
+        // quick return when source is an empty file
+        sourceLength = source.length();
+        if (sourceLength == 0) {
             return;
         }
 
-        FileChannel sourceChannel = new FileInputStream(source).getChannel();
-        FileChannel destinationChannel =
-                new FileOutputStream(destination).getChannel();
+        // create a Transferrer thread for every destination
+        int destinationCount = destinations.length;
+        sourceChannel = new FileInputStream(source).getChannel();
+        final Transferrer[] transferrers = new Transferrer[destinationCount];
+        for (int i = 0; i < destinationCount; i++) {
+            transferrers[i] = new Transferrer(
+                    new FileOutputStream(destinations[i]).getChannel());
+        }
 
-        // start with a slice of one megabyte
-        for (long position = 0; position < fileLength;) {
-            logger.finest("slice = " + numberFormat.format(slice) + " Byte");
-            // actually copy data
-            long start = System.currentTimeMillis();
-            long transferredBytes = destinationChannel.transferFrom(
-                    sourceChannel, position, slice);
-            long stop = System.currentTimeMillis();
-            long time = stop - start;
+        barrier = new CyclicBarrier(destinationCount, new Runnable() {
 
-            if (slice == transferredBytes) {
-                // determine next slice size
+            @Override
+            public void run() {
+
+                // inform property listeners about copied data volume
+                position += transferVolume;
+                copiedBytes += transferVolume;
+                propertyChangeSupport.firePropertyChange(
+                        BYTE_COUNTER_PROPERTY, oldCopiedBytes, copiedBytes);
+                oldCopiedBytes = copiedBytes;
+
+                // determine next slice size before releasing the barrier
+                long stop = System.currentTimeMillis();
+                long time = stop - sliceStartTime;
+                LOGGER.finest("time = " + NUMBER_FORMAT.format(time) + " ms");
                 if (time != 0) {
-                    long newSlice = (slice * slice * updateTime) /
-                            (time * transferredBytes);
+                    long newSlice = (slice * slice * updateTime) / (time * transferVolume);
                     // just using newSlice here leads to overmodulation
                     // doubling or halving is the slower (and probably better)
                     // approach
@@ -467,27 +508,80 @@ public class FileCopier {
                     } else if (newSlice < halfSlice) {
                         slice = halfSlice;
                     }
+                    transferVolume = Math.min(slice, sourceLength - position);
+                    LOGGER.finest("slice = " + NUMBER_FORMAT.format(slice) +
+                            " Byte\n" + "transferVolume = " +
+                            NUMBER_FORMAT.format(transferVolume) + " Byte");
                 }
-            } else {
-                logger.finest("transferredBytes = " +
-                        numberFormat.format(transferredBytes) + " Byte");
             }
-            logger.finest("time = " + numberFormat.format(time) + " ms");
+        });
 
-            position += transferredBytes;
-            copiedBytes += transferredBytes;
-            propertyChangeSupport.firePropertyChange(
-                    BYTE_COUNTER_PROPERTY, oldCopiedBytes, copiedBytes);
-            oldCopiedBytes = copiedBytes;
+        // start the transfer process
+        position = 0;
+        transferVolume = Math.min(slice, sourceLength);
+        LOGGER.finest("slice = " + NUMBER_FORMAT.format(slice) + " Byte\n" +
+                "transferVolume = " + NUMBER_FORMAT.format(transferVolume) +
+                " Byte");
+        sliceStartTime = System.currentTimeMillis();
+
+        ExecutorCompletionService<Void> completionService =
+                new ExecutorCompletionService<Void>(
+                Executors.newCachedThreadPool());
+        for (Transferrer transferrer : transferrers) {
+            completionService.submit(transferrer, null);
+        }
+
+        // wait until all transferrers completed their execution
+        for (int i = 0; i < destinationCount; i++) {
+            try {
+                completionService.take();
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
         }
 
         if (sourceChannel != null) {
             sourceChannel.close();
         }
-        if (destinationChannel != null) {
-            destinationChannel.close();
+    }
+
+    private class Transferrer extends Thread {
+
+        private final FileChannel destinationChannel;
+
+        public Transferrer(FileChannel destinationChannel) {
+            this.destinationChannel = destinationChannel;
         }
 
+        @Override
+        public void run() {
+            try {
+                while (position < sourceLength) {
+                    // transfer the current slice
+                    long transferredBytes = 0;
+                    while (transferredBytes < transferVolume) {
+                        transferredBytes += destinationChannel.transferFrom(
+                                sourceChannel, position,
+                                transferVolume - transferredBytes);
+                    }
+                    // wait for all other Transferrers to finish their slice
+                    barrier.await();
+                }
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "could not transfer data", ex);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (BrokenBarrierException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    destinationChannel.close();
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE,
+                            "could not close destination channel", ex);
+                }
+            }
+        }
     }
 
     // maybe used later to convert globs into regex?
