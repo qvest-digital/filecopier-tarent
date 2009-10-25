@@ -31,6 +31,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -71,6 +74,13 @@ public class FileCopierTest {
      */
     @Test
     public void testMultipleDestinations() throws Exception {
+
+        // log everything to console
+        Logger logger = Logger.getLogger(FileCopier.class.getName());
+        logger.setLevel(Level.ALL);
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        logger.addHandler(consoleHandler);
+        consoleHandler.setLevel(Level.ALL);
 
         // create a large (3 MiB) random source file
         int testSize = 3 * 1024 * 1024;
