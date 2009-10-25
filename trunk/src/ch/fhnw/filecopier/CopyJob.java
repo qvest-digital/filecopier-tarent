@@ -58,7 +58,7 @@ public class CopyJob {
      * returns the destinations
      * @return the destinations
      */
-    public String[] getDestination() {
+    public String[] getDestinations() {
         return destinations;
     }
 
