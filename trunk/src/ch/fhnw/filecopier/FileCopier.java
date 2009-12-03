@@ -516,6 +516,7 @@ public class FileCopier {
                             " Byte\ntransferVolume = " +
                             NUMBER_FORMAT.format(transferVolume) + " Byte");
                 }
+                sliceStartTime = System.currentTimeMillis();
             }
         });
 
