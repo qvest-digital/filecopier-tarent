@@ -1,5 +1,5 @@
 /*
- * FileCopierTest.java
+ * Dir2FileTest.java
  *
  * Created on 22. April 2008, 14:21
  *

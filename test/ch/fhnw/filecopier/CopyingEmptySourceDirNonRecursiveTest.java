@@ -1,5 +1,5 @@
 /*
- * FileCopierTest.java
+ * CopyingEmptySourceDirNonRecursiveTest.java
  *
  * Created on 22. April 2008, 14:21
  *
@@ -21,19 +21,7 @@
 
 package ch.fhnw.filecopier;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
