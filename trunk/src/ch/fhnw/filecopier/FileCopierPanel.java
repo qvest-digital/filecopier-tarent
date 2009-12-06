@@ -193,6 +193,7 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JLabel remainingLabel;
     // End of variables declaration//GEN-END:variables
+
     @Override
     public void propertyChange(final PropertyChangeEvent evt) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -233,7 +234,8 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
                             remainigTimer.stop();
                             long currentTime = System.currentTimeMillis();
                             long timeSpent = currentTime - startTime;
-                            String formattedSpentTime = getTimeString(timeSpent);
+                            String formattedSpentTime =
+                                    getTimeString(timeSpent);
                             String string = strings.getString("Time_Summary");
                             String formattedEndTime =
                                     endTimeFormat.format(currentTime);
@@ -242,7 +244,8 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
                             remainingLabel.setText(string);
                     }
 
-                } else if (FileCopier.BYTE_COUNTER_PROPERTY.equals(propertyName)) {
+                } else if (FileCopier.BYTE_COUNTER_PROPERTY.equals(
+                        propertyName)) {
                     bytesCopied = ((Long) evt.getNewValue()).longValue();
                     updateProgressBar();
                 }

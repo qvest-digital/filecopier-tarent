@@ -39,11 +39,13 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
+ * Some tests for the file copier
  * @author ronny
  */
 public class FileCopierTest {
 
+    private final File tmpDir = new File(System.getProperty("java.io.tmpdir") +
+            File.separatorChar + "filecopiertest");
     private FileCopier fileCopier;
     private File sourceDir;
     private File destinationDir;
@@ -57,13 +59,12 @@ public class FileCopierTest {
         fileCopier = new FileCopier();
 
         // create all test directories
-        File tmpDir = new File(System.getProperty("java.io.tmpdir"));
         sourceDir = new File(tmpDir, "testSourceDir");
-        if (!sourceDir.exists() && !sourceDir.mkdir()) {
+        if (!sourceDir.exists() && !sourceDir.mkdirs()) {
             fail("could not create source dir " + sourceDir);
         }
         destinationDir = new File(tmpDir, "testDestinationDir");
-        if (!destinationDir.exists() && !destinationDir.mkdir()) {
+        if (!destinationDir.exists() && !destinationDir.mkdirs()) {
             fail("could not create destination dir " + destinationDir);
         }
     }
@@ -74,6 +75,9 @@ public class FileCopierTest {
      */
     @Test
     public void testMultipleDestinations() throws Exception {
+
+        System.out.println(
+                "************** testMultipleDestinations() **************");
 
         // log everything to console
         Logger logger = Logger.getLogger(FileCopier.class.getName());
@@ -93,7 +97,6 @@ public class FileCopierTest {
         fileOutputStream.close();
 
         // create a second destination directory
-        File tmpDir = new File(System.getProperty("java.io.tmpdir"));
         File destinationDir2 = new File(tmpDir, "testDestinationDir2");
         if (!destinationDir2.exists() && !destinationDir2.mkdir()) {
             fail("could not create destination dir " + destinationDir2);
@@ -101,10 +104,13 @@ public class FileCopierTest {
 
         // copy source file in both destination directories
         CopyJob copyJob = new CopyJob(
-                new String[]{sourceFile.getPath()},
+                new Source[]{
+                    new Source(sourceFile.getParent(), sourceFile.getName())
+                },
                 new String[]{
                     destinationDir.getPath(),
-                    destinationDir2.getPath()},
+                    destinationDir2.getPath()
+                },
                 true);
         fileCopier.copy(copyJob);
 
@@ -164,6 +170,8 @@ public class FileCopierTest {
     @Test
     public void testEmptyJob() throws Exception {
 
+        System.out.println("************** testEmptyJob() **************");
+
         // try a single empty job
         fileCopier.copy((CopyJob) null);
 
@@ -181,8 +189,14 @@ public class FileCopierTest {
             System.out.println("Could not create " + singleFile);
             throw ex;
         }
-        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath() + "/.*"},
-                new String[]{destinationDir.getPath()}, true);
+        CopyJob copyJob = new CopyJob(
+                new Source[]{
+                    new Source(sourceDir.getPath(), ".*")
+                },
+                new String[]{
+                    destinationDir.getPath()
+                },
+                true);
         fileCopier.copy(copyJob, (CopyJob) null);
 
         File expectedFile = new File(destinationDir, singleFile.getName());
@@ -201,84 +215,14 @@ public class FileCopierTest {
     }
 
     /**
-     * test, if we correctly copy symlinks
-     * @throws Exception if an exception occurs
-     */
-    @Test
-    public void testCopySymlink() throws Exception {
-        // create a source file with some content
-        String content = "Please link here.";
-        File normalFile = new File(sourceDir, "normalFile");
-        try {
-            if (!normalFile.createNewFile()) {
-                fail("could not create test file " + normalFile);
-            }
-            FileWriter fileWriter = new FileWriter(normalFile);
-            fileWriter.write(content);
-            fileWriter.flush();
-            fileWriter.close();
-        } catch (IOException ex) {
-            System.out.println("Could not create " + normalFile);
-            throw ex;
-        }
-
-        // create symlink to file
-        String symlinkFileName = "symlink";
-        File symlinkFile = new File(normalFile.getParentFile().getPath() +
-                File.separator + symlinkFileName);
-        ProcessExecutor executor = new ProcessExecutor();
-        int exitValue = executor.executeProcess(
-                "ln", "-s", normalFile.getName(), symlinkFile.getPath());
-        assertEquals("could not create symlink \"" + symlinkFile.getPath() +
-                '\"', 0, exitValue);
-
-        // copy file and symlink
-        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath() + "/.*"},
-                new String[]{destinationDir.getPath()}, true);
-        fileCopier.copy(copyJob);
-
-        // check
-        File expectedFile = new File(destinationDir, normalFile.getName());
-        boolean fileExists = expectedFile.exists();
-        boolean fileIsFile = expectedFile.isFile();
-
-        File expectedSymlink = new File(destinationDir, symlinkFileName);
-        boolean symlinkExists = expectedSymlink.exists();
-        boolean symlinkIsFile = expectedSymlink.isFile();
-
-        // cleanup
-        if (!normalFile.delete()) {
-            fail("could not delete source file " + normalFile);
-        }
-        if (!symlinkFile.delete()) {
-            fail("could not delete source symlink " + symlinkFile);
-        }
-        if (!sourceDir.delete()) {
-            fail("could not delete source dir " + sourceDir);
-        }
-        if (!expectedFile.delete()) {
-            fail("could not delete destination file " + expectedFile);
-        }
-        if (!expectedSymlink.delete()) {
-            fail("could not delete destination symlink " + expectedSymlink);
-        }
-        if (!destinationDir.delete()) {
-            fail("could not delete destination dir " + destinationDir);
-        }
-
-        // final check
-        assertTrue("destination file was not created", fileExists);
-        assertTrue("destination file is no file", fileIsFile);
-        assertTrue("destination symlink was not created", symlinkExists);
-        assertFalse("destination symlink is no symlink", symlinkIsFile);
-    }
-
-    /**
      * test, if we correctly overwrite a single file if it is the second job
      * @throws Exception if an exception occurs
      */
     @Test
     public void testOverwriteSingleFileAsSecondJob() throws Exception {
+        System.out.println("************** " +
+                "testOverwriteSingleFileAsSecondJob() **************");
+
         // create a single source file with some content
         String content = "We can overwrite single files.";
         File singleFile = new File(sourceDir, "singleFile");
@@ -328,10 +272,22 @@ public class FileCopierTest {
         }
 
         // try copying the test files
-        CopyJob copyJob1 = new CopyJob(new String[]{singleFile.getPath()},
-                new String[]{existingDestinationFile1.getPath()}, false);
-        CopyJob copyJob2 = new CopyJob(new String[]{singleFile.getPath()},
-                new String[]{existingDestinationFile2.getPath()}, false);
+        CopyJob copyJob1 = new CopyJob(
+                new Source[]{
+                    new Source(singleFile.getParent(), singleFile.getName())
+                },
+                new String[]{
+                    existingDestinationFile1.getPath()
+                },
+                false);
+        CopyJob copyJob2 = new CopyJob(
+                new Source[]{
+                    new Source(singleFile.getParent(), singleFile.getName())
+                },
+                new String[]{
+                    existingDestinationFile2.getPath()
+                },
+                false);
         fileCopier.copy(copyJob1, copyJob2);
 
         // check
@@ -373,6 +329,9 @@ public class FileCopierTest {
      */
     @Test
     public void testOverwriteSingleFile() throws Exception {
+        System.out.println("************** " +
+                "testOverwriteSingleFile() **************");
+
         // create a single source file with some content
         String content = "We can overwrite single files.";
         File singleFile = new File(sourceDir, "singleFile");
@@ -405,8 +364,14 @@ public class FileCopierTest {
         }
 
         // try copying the test file
-        CopyJob copyJob = new CopyJob(new String[]{singleFile.getPath()},
-                new String[]{existingDestinationFile.getPath()}, false);
+        CopyJob copyJob = new CopyJob(
+                new Source[]{
+                    new Source(singleFile.getParent(), singleFile.getName())
+                },
+                new String[]{
+                    existingDestinationFile.getPath()
+                },
+                false);
         fileCopier.copy(copyJob);
 
         // check
@@ -444,6 +409,9 @@ public class FileCopierTest {
      */
     @Test
     public void testCopyAndRename() throws Exception {
+        System.out.println("************** " +
+                "testCopyAndRename() **************");
+
         // create a single file
         File singleFile = new File(sourceDir, "singleFile");
         try {
@@ -458,9 +426,12 @@ public class FileCopierTest {
         // try copying the test file
         final String NEW_NAME = "newName";
         CopyJob copyJob = new CopyJob(
-                new String[]{singleFile.getPath()},
+                new Source[]{
+                    new Source(singleFile.getParent(), singleFile.getName())
+                },
                 new String[]{
-                    destinationDir.getPath() + File.separatorChar + NEW_NAME},
+                    destinationDir.getPath() + File.separatorChar + NEW_NAME
+                },
                 false);
         fileCopier.copy(copyJob);
 
@@ -495,10 +466,18 @@ public class FileCopierTest {
      */
     @Test
     public void testCopyingEmptySourceDirRecursive() throws Exception {
+        System.out.println("************** " +
+                "testCopyingEmptySourceDirRecursive() **************");
 
         // try copying the empty directory
-        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath()},
-                new String[]{destinationDir.getPath()}, true);
+        CopyJob copyJob = new CopyJob(
+                new Source[]{
+                    new Source(sourceDir.getParent(), sourceDir.getName())
+                },
+                new String[]{
+                    destinationDir.getPath()
+                },
+                true);
         fileCopier.copy(copyJob);
 
         // check
@@ -523,38 +502,13 @@ public class FileCopierTest {
     }
 
     /**
-     * test, if we correctly copy an empty directory (recursively)
-     * @throws Exception if an exception occurs
-     */
-    @Test
-    public void testCopyingEmptySourceDirNonRecursive() throws Exception {
-        // try copying the empty directory
-        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath()},
-                new String[]{destinationDir.getPath()}, false);
-        fileCopier.copy(copyJob);
-
-        // check
-        File expected = new File(destinationDir, sourceDir.getName());
-        boolean exists = expected.exists();
-
-        // cleanup
-        if (!sourceDir.delete()) {
-            fail("could not delete source dir " + sourceDir);
-        }
-        if (!destinationDir.delete()) {
-            fail("could not delete destination dir " + destinationDir);
-        }
-
-        // final check
-        assertFalse("destination was created", exists);
-    }
-
-    /**
      * test, if we correctly copy a single file to a target directory
      * @throws Exception if an exception occurs
      */
     @Test
     public void testCopyingSingleFile() throws Exception {
+        System.out.println("************** " +
+                "testCopyingSingleFile() **************");
         // should work identically in both the recursive and non-recursive case
         testSingleFile(true/*recursive*/);
         setUp();
@@ -574,8 +528,14 @@ public class FileCopierTest {
         }
 
         // try copying the test file
-        CopyJob copyJob = new CopyJob(new String[]{singleFile.getPath()},
-                new String[]{destinationDir.getPath()}, recursive);
+        CopyJob copyJob = new CopyJob(
+                new Source[]{
+                    new Source(singleFile.getParent(), singleFile.getName())
+                },
+                new String[]{
+                    destinationDir.getPath()
+                },
+                recursive);
         fileCopier.copy(copyJob);
 
         // check
@@ -611,14 +571,22 @@ public class FileCopierTest {
      */
     @Test
     public void testDir2File() throws IOException {
+        System.out.println("************** " +
+                "testDir2File() **************");
         File destinationFile = new File(destinationDir, "destinationFile");
         if (!destinationFile.createNewFile()) {
             fail("could not create test file " + destinationFile);
         }
         try {
             // try copying the test file
-            CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath()},
-                    new String[]{destinationFile.getPath()}, true);
+            CopyJob copyJob = new CopyJob(
+                    new Source[]{
+                        new Source(sourceDir.getParent(), sourceDir.getName())
+                    },
+                    new String[]{
+                        destinationFile.getPath()
+                    },
+                    true);
             fileCopier.copy(copyJob);
             fail("this test must throw an exception");
         } catch (IOException ex) {
@@ -648,72 +616,24 @@ public class FileCopierTest {
     }
 
     /**
-     * test, if we correctly handle the situation of copying a full directory
-     * to an existing directory
-     * @throws IOException if an I/O exception occurs
-     */
-    @Test
-    public void testFullDir2Dir() throws IOException {
-        // create a test file in the source directory
-        File testFile = new File(sourceDir, "testFile");
-        try {
-            if (!testFile.createNewFile()) {
-                fail("could not create test file " + testFile);
-            }
-        } catch (IOException ex) {
-            System.out.println("Could not create " + testFile);
-            throw ex;
-        }
-
-        // try copying the source directory (recursive)
-        CopyJob copyJob = new CopyJob(new String[]{sourceDir.getPath()},
-                new String[]{destinationDir.getPath()}, true);
-        fileCopier.copy(copyJob);
-
-        // check
-        File expectedDir = new File(destinationDir, sourceDir.getName());
-        boolean dirExists = expectedDir.exists();
-        boolean dirIsDir = expectedDir.isDirectory();
-        File expectedFile = new File(expectedDir, testFile.getName());
-        boolean fileExists = expectedFile.exists();
-        boolean fileIsFile = expectedFile.isFile();
-
-        // cleanup
-        if (!testFile.delete()) {
-            fail("could not delete test file " + testFile);
-        }
-        if (!sourceDir.delete()) {
-            fail("could not delete source dir " + sourceDir);
-        }
-        if (expectedFile.exists() && !expectedFile.delete()) {
-            fail("could not delete destination file " + expectedFile);
-        }
-        if (!expectedDir.delete()) {
-            fail("could not delete destination dir " + expectedDir);
-        }
-        if (!destinationDir.delete()) {
-            fail("could not delete destination dir " + destinationDir);
-        }
-
-        // final check
-        assertTrue("destination directory was not created", dirExists);
-        assertTrue("destination directory is no directory", dirIsDir);
-        assertTrue("destination file was not created", fileExists);
-        assertTrue("destination file is no file", fileIsFile);
-    }
-
-    /**
      * test, if we correctly copy an empty directory (recursively) when
      * appending path separators at the end of the path
      * @throws Exception if an exception occurs
      */
     @Test
     public void testPathSeparator() throws Exception {
+        System.out.println("************** " +
+                "testPathSeparator() **************");
 
         // try copying the empty directory
         CopyJob copyJob = new CopyJob(
-                new String[]{sourceDir.getPath() + File.separatorChar},
-                new String[]{destinationDir.getPath()}, true);
+                new Source[]{
+                    new Source(sourceDir.getParent(), sourceDir.getName())
+                },
+                new String[]{
+                    destinationDir.getPath()
+                },
+                true);
         fileCopier.copy(copyJob);
 
         // check

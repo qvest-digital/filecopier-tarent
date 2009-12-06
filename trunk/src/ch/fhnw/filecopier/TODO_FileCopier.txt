@@ -1,3 +1,6 @@
+- source:
+    basedirectory and pattern
+
 - overwrite single file does not work, when second job
   cp /datei1 /datei2
 

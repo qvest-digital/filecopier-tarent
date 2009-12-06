@@ -90,9 +90,6 @@ public class FileCopier {
     private long byteCount;
     private long oldCopiedBytes;
     private long copiedBytes;
-    private final char[] regExChars = new char[]{
-        '+', '(', ')', '^', '$', '.', '{', '}', '[', ']', '|', '\\'
-    };
     private int updateTime = 1000; // the intervall we want to get
     private final static NumberFormat NUMBER_FORMAT =
             NumberFormat.getInstance();
@@ -172,11 +169,12 @@ public class FileCopier {
             if (copyJob == null) {
                 continue;
             }
-            String[] sources = copyJob.getSources();
+            Source[] sources = copyJob.getSources();
             List<DirectoryInfo> directoryInfos = new ArrayList<DirectoryInfo>();
-            for (String source : sources) {
-                DirectoryInfo tmpInfo =
-                        evaluateSource(source, copyJob.isRecursive());
+            for (Source source : sources) {
+                File baseDirectory = source.getBaseDirectory();
+                DirectoryInfo tmpInfo = expand(baseDirectory, baseDirectory,
+                        source.getPattern(), copyJob.isRecursive());
                 if (tmpInfo != null) {
                     directoryInfos.add(tmpInfo);
                     byteCount += tmpInfo.getByteCount();
@@ -335,60 +333,11 @@ public class FileCopier {
         return destinationFiles;
     }
 
-    private DirectoryInfo evaluateSource(
-            String sourceExpression, boolean recursive) {
-
-        // check expression for regex
-        boolean regExFount = false;
-        int firstRegExIndex = Integer.MAX_VALUE;
-        for (char regExChar : regExChars) {
-            int index = sourceExpression.indexOf(regExChar);
-            if (index != -1) {
-                // The expression contains a regex char.
-                // We have to check, if it is escaped.
-                char previousChar = sourceExpression.charAt(index - 1);
-                if (previousChar != '\\') {
-                    // no, it is really a regex here...
-                    regExFount = true;
-                    firstRegExIndex =
-                            Math.min(firstRegExIndex, index);
-                }
-
-            }
-        }
-
-        // determine base directory and search pattern
-        File baseDirectory = null;
-        Pattern pattern = null;
-        if (regExFount) {
-            String substring = sourceExpression.substring(0, firstRegExIndex);
-            int lastSeparatorChar = substring.lastIndexOf(File.separatorChar);
-            String dirName = sourceExpression.substring(0, lastSeparatorChar);
-            baseDirectory = new File(dirName);
-            pattern = Pattern.compile(sourceExpression);
-        } else {
-            // no regEx, just a file or directory
-            File file = new File(sourceExpression);
-            baseDirectory = file.getParentFile();
-            // use file.getPath() instead of sourceExpression so that all
-            // path separators at the end of the expression are removed...
-            String path = file.getPath();
-            if (recursive && file.isDirectory()) {
-                pattern = Pattern.compile(path + ".*");
-            } else {
-                pattern = Pattern.compile(path);
-            }
-        }
-
-        // traverse base directory and apply pattern
-        return expand(baseDirectory, pattern, recursive);
-    }
-
-    private DirectoryInfo expand(File baseDirectory,
+    private DirectoryInfo expand(File baseDirectory, File currentDirectory,
             Pattern pattern, boolean recursive) {
 
-        LOGGER.info("base directory: " + baseDirectory +
-                " pattern: \"" + pattern + "\"");
+        LOGGER.info("\n\tbase directory: \"" + baseDirectory +
+                "\"\n\tpattern: \"" + pattern + "\"");
 
         // feed the listeners
         propertyChangeSupport.firePropertyChange(
@@ -414,23 +363,21 @@ public class FileCopier {
         }
 
         LOGGER.fine("recursing directory " + baseDirectory);
+        int baseDirectoryPathLength =
+                baseDirectory.getPath().length() + 1/*path separator char*/;
         long tmpByteCount = 0;
         List<File> files = new ArrayList<File>();
-        for (File subFile : baseDirectory.listFiles()) {
-            if (pattern.matcher(subFile.getPath()).matches()) {
+        for (File subFile : currentDirectory.listFiles()) {
+
+            // check if subfile matches
+            String relativePath =
+                    subFile.getPath().substring(baseDirectoryPathLength);
+            if (pattern.matcher(relativePath).matches()) {
                 LOGGER.fine(subFile + " matches");
                 if (subFile.isDirectory()) {
+                    // copy directories itself only when using recursive mode
                     if (recursive) {
                         files.add(subFile);
-                        tmpByteCount += subFile.length();
-                        DirectoryInfo tmpInfo =
-                                expand(subFile, pattern, recursive);
-                        if (tmpInfo != null) {
-                            files.addAll(tmpInfo.getFiles());
-                            tmpByteCount += tmpInfo.getByteCount();
-                        }
-                    } else {
-                        LOGGER.fine("skipping directory " + subFile);
                     }
                 } else {
                     files.add(subFile);
@@ -438,6 +385,18 @@ public class FileCopier {
                 }
             } else {
                 LOGGER.fine(subFile + " does not match");
+            }
+
+            // recurse directories
+            if (subFile.isDirectory()) {
+                if (recursive) {
+                    DirectoryInfo tmpInfo = expand(
+                            baseDirectory, subFile, pattern, recursive);
+                    if (tmpInfo != null) {
+                        files.addAll(tmpInfo.getFiles());
+                        tmpByteCount += tmpInfo.getByteCount();
+                    }
+                }
             }
         }
         return new DirectoryInfo(baseDirectory, files, tmpByteCount);
@@ -463,6 +422,7 @@ public class FileCopier {
         // processing
         for (File destination : destinations) {
             if (!destination.exists()) {
+                destination.getParentFile().mkdirs();
                 destination.createNewFile();
             }
         }
@@ -600,24 +560,5 @@ public class FileCopier {
                 }
             }
         }
-    }
-
-    // maybe used later to convert globs into regex?
-    private static String convertWildCardsToRegEx(String string) {
-        char[] chars = string.toCharArray();
-        StringBuilder builder = new StringBuilder(chars.length + 5);
-        for (char character : chars) {
-            if (character == '*') {
-                builder.append(".*");
-            } else if (character == '?') {
-                builder.append(".");
-            } else if ("+()^$.{}[]|\\".indexOf(character) != -1) {
-                builder.append('\\').append(character);
-            } else {
-                builder.append(character);
-            }
-
-        }
-        return builder.toString();
     }
 }
