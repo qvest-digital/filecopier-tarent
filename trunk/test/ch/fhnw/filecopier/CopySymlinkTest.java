@@ -18,6 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ch.fhnw.filecopier;
 
 import java.io.File;
@@ -109,25 +110,21 @@ public class CopySymlinkTest {
 
             // check
             expectedFile = new File(destinationDir, normalFile.getName());
-            boolean fileExists = expectedFile.exists();
-            boolean fileIsFile = expectedFile.isFile();
-
             expectedSymlink = new File(destinationDir, symlinkFileName);
-            boolean symlinkExists = expectedSymlink.exists();
-            boolean symlinkIsFile = expectedSymlink.isFile();
-
-            // final check
-            assertTrue("destination file was not created", fileExists);
-            assertTrue("destination file is no file", fileIsFile);
-            assertTrue("destination symlink was not created", symlinkExists);
-            assertFalse("destination symlink is no symlink", symlinkIsFile);
+            assertTrue("destination file was not created",
+                    expectedFile.exists());
+            assertTrue("destination file is no file",
+                    expectedFile.isFile());
+            assertTrue("destination symlink was not created",
+                    expectedSymlink.exists());
+            assertFalse("destination symlink is no symlink",
+                    expectedSymlink.isFile());
 
         } finally {
             if ((normalFile != null) && !normalFile.delete()) {
                 fail("could not delete source file " + normalFile);
             }
-            if ((symlinkFile != null) && 
-                    symlinkFile.exists() && !symlinkFile.delete()) {
+            if ((symlinkFile != null) && !symlinkFile.delete()) {
                 fail("could not delete source symlink " + symlinkFile);
             }
             if (!sourceDir.delete()) {
