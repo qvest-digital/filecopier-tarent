@@ -1,5 +1,5 @@
 /*
- * CopySymlinkTest.java
+ * OverwriteSingleFileTest.java
  *
  * Created on 22. April 2008, 14:21
  *
@@ -20,7 +20,9 @@
  */
 package ch.fhnw.filecopier;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import org.junit.Before;
@@ -31,7 +33,7 @@ import static org.junit.Assert.*;
  * Some tests for the file copier
  * @author ronny
  */
-public class CopySymlinkTest {
+public class OverwriteSingleFileTest {
 
     private final File tmpDir = new File(System.getProperty("java.io.tmpdir") +
             File.separatorChar + "filecopiertest");
@@ -59,90 +61,93 @@ public class CopySymlinkTest {
     }
 
     /**
-     * test, if we correctly copy symlinks
+     * test, if we correctly overwrite a single file
      * @throws Exception if an exception occurs
      */
     @Test
-    public void testCopySymlink() throws Exception {
-        File normalFile = null;
-        File symlinkFile = null;
-        File expectedFile = null;
-        File expectedSymlink = null;
+    public void testOverwriteSingleFile() throws Exception {
+
+        File singleFile = null;
+        File expected = null;
 
         try {
-            // create a source file with some content
-            String content = "Please link here.";
-            normalFile = new File(sourceDir, "normalFile");
+            // create a single source file with some content
+            String content = "We can overwrite single files.";
+            singleFile = new File(sourceDir, "singleFile");
             try {
-                if (!normalFile.createNewFile()) {
-                    fail("could not create test file " + normalFile);
+                if (!singleFile.createNewFile()) {
+                    fail("could not create test file " + singleFile);
                 }
-                FileWriter fileWriter = new FileWriter(normalFile);
+                FileWriter fileWriter = new FileWriter(singleFile);
                 fileWriter.write(content);
                 fileWriter.flush();
                 fileWriter.close();
             } catch (IOException ex) {
-                System.out.println("Could not create " + normalFile);
+                System.out.println("Could not create " + singleFile);
                 throw ex;
             }
 
-            // create symlink to file
-            String symlinkFileName = "symlink";
-            symlinkFile = new File(normalFile.getParentFile().getPath() +
-                    File.separator + symlinkFileName);
-            ProcessExecutor executor = new ProcessExecutor();
-            int exitValue = executor.executeProcess(
-                    "ln", "-s", normalFile.getName(), symlinkFile.getPath());
-            assertEquals("could not create symlink \"" + symlinkFile.getPath() +
-                    '\"', 0, exitValue);
+            // create a single destination file
+            File existingDestinationFile =
+                    new File(destinationDir, "existingFile");
+            try {
+                if (!existingDestinationFile.createNewFile()) {
+                    fail("could not create test file " +
+                            existingDestinationFile);
+                }
+                FileWriter fileWriter = new FileWriter(existingDestinationFile);
+                fileWriter.write("something completely different");
+                fileWriter.flush();
+                fileWriter.close();
+            } catch (IOException ex) {
+                System.out.println("Could not create " +
+                        existingDestinationFile);
+                throw ex;
+            }
 
-            // copy file and symlink
+            // try copying the test file
             CopyJob copyJob = new CopyJob(
                     new Source[]{
-                        new Source(sourceDir.getPath(), ".*")
+                        new Source(singleFile.getParent(), singleFile.getName())
                     },
                     new String[]{
-                        destinationDir.getPath()
+                        existingDestinationFile.getPath()
                     },
-                    true);
+                    false);
             fileCopier.copy(copyJob);
 
             // check
-            expectedFile = new File(destinationDir, normalFile.getName());
-            boolean fileExists = expectedFile.exists();
-            boolean fileIsFile = expectedFile.isFile();
+            expected = new File(destinationDir, "existingFile");
+            boolean exists = expected.exists();
+            boolean isFile = expected.isFile();
+            FileReader fileReader = new FileReader(expected);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String line = bufferedReader.readLine();
+            bufferedReader.close();
+            fileReader.close();
+            boolean contentMatch = content.equals(line);
 
-            expectedSymlink = new File(destinationDir, symlinkFileName);
-            boolean symlinkExists = expectedSymlink.exists();
-            boolean symlinkIsFile = expectedSymlink.isFile();
 
             // final check
-            assertTrue("destination file was not created", fileExists);
-            assertTrue("destination file is no file", fileIsFile);
-            assertTrue("destination symlink was not created", symlinkExists);
-            assertFalse("destination symlink is no symlink", symlinkIsFile);
+            assertTrue("destination was not created", exists);
+            assertTrue("destination is no file", isFile);
+            assertTrue("the file was not copied", contentMatch);
 
         } finally {
-            if ((normalFile != null) && !normalFile.delete()) {
-                fail("could not delete source file " + normalFile);
-            }
-            if ((symlinkFile != null) && 
-                    symlinkFile.exists() && !symlinkFile.delete()) {
-                fail("could not delete source symlink " + symlinkFile);
+            if ((singleFile != null) &&
+                    singleFile.exists() && !singleFile.delete()) {
+                fail("could not delete source file " + singleFile);
             }
             if (!sourceDir.delete()) {
                 fail("could not delete source dir " + sourceDir);
             }
-            if ((expectedFile != null) && !expectedFile.delete()) {
-                fail("could not delete destination file " + expectedFile);
-            }
-            if ((expectedSymlink != null) && !expectedSymlink.delete()) {
-                fail("could not delete destination symlink " + expectedSymlink);
+            if ((expected != null) &&
+                    expected.exists() && !expected.delete()) {
+                fail("could not delete destination file " + expected);
             }
             if (!destinationDir.delete()) {
                 fail("could not delete destination dir " + destinationDir);
             }
-
         }
     }
 }

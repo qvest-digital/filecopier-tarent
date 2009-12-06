@@ -1,5 +1,5 @@
 /*
- * FileCopierTest.java
+ * Dir2DirTest.java
  *
  * Created on 22. April 2008, 14:21
  *
@@ -18,11 +18,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ch.fhnw.filecopier;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Pattern;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
 public class Dir2DirTest {
 
     private final File tmpDir = new File(System.getProperty("java.io.tmpdir") +
-                File.separatorChar + "filecopiertest");
+            File.separatorChar + "filecopiertest");
     private FileCopier fileCopier;
     private File sourceDir;
     private File destinationDir;
@@ -65,7 +65,7 @@ public class Dir2DirTest {
      */
     @Test
     public void testFullDir2Dir() throws IOException {
-        
+
         // create a test file in the source directory
         File testFile = new File(sourceDir, "testFile");
         try {
@@ -78,10 +78,11 @@ public class Dir2DirTest {
         }
 
         // try copying the source directory (recursive)
+        String searchPattern =
+                sourceDir.getName() + Pattern.quote(File.separator) + ".*";
         CopyJob copyJob = new CopyJob(
                 new Source[]{
-                    new Source(sourceDir.getParent(), 
-                            sourceDir.getName() + File.separatorChar + ".*")
+                    new Source(sourceDir.getParent(), searchPattern)
                 },
                 new String[]{
                     destinationDir.getPath()
