@@ -63,31 +63,31 @@ public class CopyingEmptySourceDirNonRecursiveTest {
      */
     @Test
     public void testCopyingEmptySourceDirNonRecursive() throws Exception {
-        
-        // try copying the empty directory
-        CopyJob copyJob = new CopyJob(
-                new Source[]{
-                    new Source(sourceDir.getParent(), sourceDir.getName())
-                },
-                new String[]{
-                    destinationDir.getPath()
-                },
-                false);
-        fileCopier.copy(copyJob);
 
-        // check
-        File expected = new File(destinationDir, sourceDir.getName());
-        boolean exists = expected.exists();
+        try {
+            // try copying the empty directory
+            CopyJob copyJob = new CopyJob(
+                    new Source[]{
+                        new Source(sourceDir.getParent(), sourceDir.getName())
+                    },
+                    new String[]{
+                        destinationDir.getPath()
+                    },
+                    false);
+            fileCopier.copy(copyJob);
 
-        // cleanup
-        if (!sourceDir.delete()) {
-            fail("could not delete source dir " + sourceDir);
+            // check
+            File expected = new File(destinationDir, sourceDir.getName());
+            assertFalse("destination was created", expected.exists());
+
+        } finally {
+
+            if (!sourceDir.delete()) {
+                fail("could not delete source dir " + sourceDir);
+            }
+            if (!destinationDir.delete()) {
+                fail("could not delete destination dir " + destinationDir);
+            }
         }
-        if (!destinationDir.delete()) {
-            fail("could not delete destination dir " + destinationDir);
-        }
-
-        // final check
-        assertFalse("destination was created", exists);
     }
 }
