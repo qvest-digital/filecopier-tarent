@@ -18,6 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ch.fhnw.filecopier;
 
 import java.util.logging.Level;
@@ -45,7 +46,10 @@ public class TestApp extends javax.swing.JFrame {
             protected Void doInBackground() {
                 try {
                     CopyJob copyJob = new CopyJob(
-                            new String[]{"/source1/*", "/source2/.*.java"},
+                            new Source[]{
+                                new Source("/source1/", "*"),
+                                new Source("/source2/", ".*.java")
+                            },
                             new String[]{"/destination"}, true);
                     fileCopier.copy(copyJob);
                 } catch (Exception ex) {

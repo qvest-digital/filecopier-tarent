@@ -30,8 +30,8 @@ import java.util.List;
 public class CopyJob {
 
     private final boolean recursive;
+    private final Source[] sources;
     private final String[] destinations;
-    private final String[] sources;
     private List<DirectoryInfo> directoryInfos;
 
     /**
@@ -40,7 +40,7 @@ public class CopyJob {
      * @param destinations the destinations
      * @param sources the sources
      */
-    public CopyJob(String[] sources, String[] destinations, boolean recursive) {
+    public CopyJob(Source[] sources, String[] destinations, boolean recursive) {
         this.sources = sources;
         this.destinations = destinations;
         this.recursive = recursive;
@@ -50,7 +50,7 @@ public class CopyJob {
      * returns the sources
      * @return the sources
      */
-    public String[] getSources() {
+    public Source[] getSources() {
         return sources;
     }
 
