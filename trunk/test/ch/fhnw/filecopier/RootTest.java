@@ -70,8 +70,7 @@ public class RootTest {
             searchPattern = "vmlinuz";
         } else if (osName.startsWith("Windows")) {
             baseDirectory = "C:\\";
-            searchPattern = "?";
-            fail("test does not support Windows");
+            searchPattern = "boot.ini";
         } else {
             fail("test does not support " + osName);
         }
