@@ -18,12 +18,7 @@
 
 - option "overwrite existing files"
 
-- regex mit "|" in source wird nicht funktionieren...
-
 - i18n für exceptions in FileCopier
 
 - timer läuft bei exception weiter (z.B. wenn datei aufgrund fehlender
 Berechtigung nicht gelesen werden kann)
-
-- multiple targets?
-    - bespielen von mehreren USB-Sticks auf einmal oder nacheinander...
