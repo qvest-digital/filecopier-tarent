@@ -45,13 +45,22 @@ public class TestApp extends javax.swing.JFrame {
             @Override
             protected Void doInBackground() {
                 try {
-                    CopyJob copyJob = new CopyJob(
+                    // Unix example
+                    CopyJob unixCopyJob = new CopyJob(
                             new Source[]{
                                 new Source("/source1/", "*"),
                                 new Source("/source2/", ".*.java")
                             },
                             new String[]{"/destination"}, true);
-                    fileCopier.copy(copyJob);
+                    fileCopier.copy(unixCopyJob);
+
+                    // Windows example
+                    CopyJob windowsCopyJob = new CopyJob(
+                            new Source[]{
+                                new Source("C:\\", "Test\\.txt"),
+                            },
+                            new String[]{"C:\\Test2.txt"}, false);
+                    fileCopier.copy(windowsCopyJob);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
