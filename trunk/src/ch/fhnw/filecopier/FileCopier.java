@@ -173,8 +173,20 @@ public class FileCopier {
             List<DirectoryInfo> directoryInfos = new ArrayList<DirectoryInfo>();
             for (Source source : sources) {
                 File baseDirectory = source.getBaseDirectory();
-                DirectoryInfo tmpInfo = expand(baseDirectory, baseDirectory,
-                        source.getPattern(), copyJob.isRecursive());
+                int baseDirectoryPathLength = 0;
+                String baseDirectoryPath = baseDirectory.getPath();
+                if (baseDirectoryPath.endsWith(File.separator)) {
+                    // baseDirectory is a file system root, e.g.
+                    // "/" or "C:\"
+                    baseDirectoryPathLength = baseDirectoryPath.length();
+                } else {
+                    // baseDirectory is a normal directory, e.g.
+                    // "/etc" or "C:\test"
+                    baseDirectoryPathLength = baseDirectoryPath.length() + 1;
+                }
+                DirectoryInfo tmpInfo = expand(baseDirectoryPathLength,
+                        baseDirectory, source.getPattern(),
+                        copyJob.isRecursive());
                 if (tmpInfo != null) {
                     directoryInfos.add(tmpInfo);
                     byteCount += tmpInfo.getByteCount();
@@ -333,28 +345,28 @@ public class FileCopier {
         return destinationFiles;
     }
 
-    private DirectoryInfo expand(File baseDirectory, File currentDirectory,
-            Pattern pattern, boolean recursive) {
+    private DirectoryInfo expand(int baseDirectoryPathLength,
+            File currentDirectory, Pattern pattern, boolean recursive) {
 
-        LOGGER.info("\n\tbase directory: \"" + baseDirectory +
+        LOGGER.info("\n\tcurrent directory: \"" + currentDirectory +
                 "\"\n\tpattern: \"" + pattern + "\"");
 
         // feed the listeners
         propertyChangeSupport.firePropertyChange(
-                FILE_PROPERTY, null, baseDirectory);
+                FILE_PROPERTY, null, currentDirectory);
 
-        if (!baseDirectory.exists()) {
-            LOGGER.warning(baseDirectory + " does not exist");
+        if (!currentDirectory.exists()) {
+            LOGGER.warning(currentDirectory + " does not exist");
             return null;
         }
 
-        if (!baseDirectory.isDirectory()) {
-            LOGGER.warning(baseDirectory + " is no directory");
+        if (!currentDirectory.isDirectory()) {
+            LOGGER.warning(currentDirectory + " is no directory");
             return null;
         }
 
-        if (!baseDirectory.canRead()) {
-            LOGGER.warning("can not read " + baseDirectory);
+        if (!currentDirectory.canRead()) {
+            LOGGER.warning("can not read " + currentDirectory);
             return null;
         }
 
@@ -362,9 +374,7 @@ public class FileCopier {
             throw new IllegalArgumentException("pattern must not be null");
         }
 
-        LOGGER.fine("recursing directory " + baseDirectory);
-        int baseDirectoryPathLength =
-                baseDirectory.getPath().length() + 1/*path separator char*/;
+        LOGGER.fine("recursing directory " + currentDirectory);
         long tmpByteCount = 0;
         List<File> files = new ArrayList<File>();
         for (File subFile : currentDirectory.listFiles()) {
@@ -390,8 +400,8 @@ public class FileCopier {
             // recurse directories
             if (subFile.isDirectory()) {
                 if (recursive) {
-                    DirectoryInfo tmpInfo = expand(
-                            baseDirectory, subFile, pattern, recursive);
+                    DirectoryInfo tmpInfo = expand(baseDirectoryPathLength,
+                            subFile, pattern, recursive);
                     if (tmpInfo != null) {
                         files.addAll(tmpInfo.getFiles());
                         tmpByteCount += tmpInfo.getByteCount();
@@ -399,7 +409,7 @@ public class FileCopier {
                 }
             }
         }
-        return new DirectoryInfo(baseDirectory, files, tmpByteCount);
+        return new DirectoryInfo(currentDirectory, files, tmpByteCount);
     }
 
     private void copyFile(File source, File... destinations)
