@@ -1,0 +1,5 @@
+2010-01-07
+    - NEW: moved "recursive" property from copyjob to source
+    - FIX: shutdown executor service after completing all copyjobs
+           (do no longer prevent application exit because of running non-daemon
+            threads)

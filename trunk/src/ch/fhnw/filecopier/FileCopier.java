@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -498,9 +499,10 @@ public class FileCopier {
                 NUMBER_FORMAT.format(transferVolume) + " Byte");
         sliceStartTime = System.currentTimeMillis();
 
+        ExecutorService executorService = Executors.newCachedThreadPool();
         ExecutorCompletionService<Void> completionService =
                 new ExecutorCompletionService<Void>(
-                Executors.newCachedThreadPool());
+                executorService);
         for (Transferrer transferrer : transferrers) {
             completionService.submit(transferrer, null);
         }
@@ -513,6 +515,7 @@ public class FileCopier {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
+        executorService.shutdown();
     }
 
     private class Transferrer extends Thread {
