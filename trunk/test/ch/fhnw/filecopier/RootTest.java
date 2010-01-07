@@ -59,7 +59,7 @@ public class RootTest {
      * @throws IOException if an I/O exception occurs
      */
     @Test
-    public void testFullDir2Dir() throws IOException {
+    public void testRootDir() throws IOException {
 
         // choose source file based on operating system
         String baseDirectory = null;
@@ -77,13 +77,8 @@ public class RootTest {
 
         // try copying the source file
         CopyJob copyJob = new CopyJob(
-                new Source[]{
-                    new Source(baseDirectory, searchPattern)
-                },
-                new String[]{
-                    destinationDir.getPath()
-                },
-                false);
+                new Source[]{new Source(baseDirectory, searchPattern, false)},
+                new String[]{destinationDir.getPath()});
 
         File expectedFile = null;
         try {

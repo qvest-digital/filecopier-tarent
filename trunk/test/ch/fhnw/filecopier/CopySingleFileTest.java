@@ -1,5 +1,5 @@
 /*
- * OverwriteSingleFileTest.java
+ * FileCopierTest.java
  *
  * Created on 22. April 2008, 14:21
  *
@@ -18,12 +18,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ch.fhnw.filecopier;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +31,7 @@ import static org.junit.Assert.*;
  * Some tests for the file copier
  * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
-public class OverwriteSingleFileTest {
+public class CopySingleFileTest {
 
     private final File tmpDir = new File(System.getProperty("java.io.tmpdir") +
             File.separatorChar + "filecopiertest");
@@ -61,68 +59,49 @@ public class OverwriteSingleFileTest {
     }
 
     /**
-     * test, if we correctly overwrite a single file
+     * test, if we correctly copy a single file to a target directory
      * @throws Exception if an exception occurs
      */
     @Test
-    public void testOverwriteSingleFile() throws Exception {
+    public void testCopyingSingleFile() throws Exception {
+        // should work identically in both the recursive and non-recursive case
+        testSingleFile(true/*recursive*/);
+        setUp();
+        testSingleFile(false/*recursive*/);
+    }
 
+    private void testSingleFile(boolean recursive) throws IOException {
         File singleFile = null;
         File expected = null;
-
         try {
-            // create a single source file with some content
-            String content = "We can overwrite single files.";
+            // create a single file
             singleFile = new File(sourceDir, "singleFile");
             try {
                 if (!singleFile.createNewFile()) {
                     fail("could not create test file " + singleFile);
                 }
-                FileWriter fileWriter = new FileWriter(singleFile);
-                fileWriter.write(content);
-                fileWriter.flush();
-                fileWriter.close();
             } catch (IOException ex) {
                 System.out.println("Could not create " + singleFile);
                 throw ex;
             }
 
-            // create a single destination file
-            File existingDestinationFile =
-                    new File(destinationDir, "existingFile");
-            try {
-                if (!existingDestinationFile.createNewFile()) {
-                    fail("could not create test file " +
-                            existingDestinationFile);
-                }
-                FileWriter fileWriter = new FileWriter(existingDestinationFile);
-                fileWriter.write("something completely different");
-                fileWriter.flush();
-                fileWriter.close();
-            } catch (IOException ex) {
-                System.out.println("Could not create " +
-                        existingDestinationFile);
-                throw ex;
-            }
-
             // try copying the test file
-            CopyJob copyJob = new CopyJob(
-                    new Source[]{new Source(singleFile.getPath())},
-                    new String[]{existingDestinationFile.getPath()});
+            Source[] sources = new Source[]{
+                new Source(singleFile.getParent(), singleFile.getName(), recursive)
+            };
+            String[] destinations = new String[]{
+                destinationDir.getPath()
+            };
+            CopyJob copyJob = new CopyJob(sources, destinations);
             fileCopier.copy(copyJob);
 
             // check
-            expected = new File(destinationDir, "existingFile");
-            FileReader fileReader = new FileReader(expected);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-            String line = bufferedReader.readLine();
-            bufferedReader.close();
-            fileReader.close();
+            expected = new File(destinationDir, singleFile.getName());
             assertTrue("destination was not created", expected.exists());
             assertTrue("destination is no file", expected.isFile());
-            assertTrue("the file was not copied", content.equals(line));
 
         } finally {
+            // cleanup
             if ((singleFile != null) &&
                     singleFile.exists() && !singleFile.delete()) {
                 fail("could not delete source file " + singleFile);

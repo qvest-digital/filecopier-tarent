@@ -1,5 +1,5 @@
 /*
- * Dir2FileTest.java
+ * PathSeparatorTest.java
  *
  * Created on 22. April 2008, 14:21
  *
@@ -22,7 +22,6 @@
 package ch.fhnw.filecopier;
 
 import java.io.File;
-import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -31,7 +30,7 @@ import static org.junit.Assert.*;
  * Some tests for the file copier
  * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
-public class Dir2FileTest {
+public class PathSeparatorTest {
 
     private final File tmpDir = new File(System.getProperty("java.io.tmpdir") +
             File.separatorChar + "filecopiertest");
@@ -59,49 +58,40 @@ public class Dir2FileTest {
     }
 
     /**
-     * test, if we correctly handle the situation of copying an empty directory
-     * to an existing file
-     * (do nothing, print warning)
-     * @throws IOException if an I/O exception occurs
+     * test, if we correctly copy an empty directory (recursively) when
+     * appending path separators at the end of the path
+     * @throws Exception if an exception occurs
      */
     @Test
-    public void testDir2File() throws IOException {
+    public void testPathSeparator() throws Exception {
 
+        File expected = null;
 
-        File destinationFile = null;
         try {
-            destinationFile = new File(destinationDir, "destinationFile");
-            if (!destinationFile.createNewFile()) {
-                fail("could not create test file " + destinationFile);
-            }
-            try {
-                // try copying the test file
-                CopyJob copyJob = new CopyJob(
-                        new Source[]{new Source(sourceDir.getPath())},
-                        new String[]{destinationFile.getPath()});
-                fileCopier.copy(copyJob);
-                fail("this test must throw an exception");
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                // yes, we want an exception here!
-            }
+            // try copying the empty directory
+            CopyJob copyJob = new CopyJob(
+                    new Source[]{new Source(sourceDir.getPath() + '/')},
+                    new String[]{destinationDir.getPath()});
+            fileCopier.copy(copyJob);
 
             // check
-            destinationFile = new File(destinationDir, "destinationFile");
-            assertTrue("destination was not created", destinationFile.exists());
-            assertTrue("destination is no file", destinationFile.isFile());
+            expected = new File(destinationDir, sourceDir.getName());
+            assertTrue("destination was not created", expected.exists());
+            assertTrue("destination is no directory", expected.isDirectory());
 
         } finally {
+            // cleanup
             if (!sourceDir.delete()) {
                 fail("could not delete source dir " + sourceDir);
             }
-            if ((destinationFile != null) &&
-                    destinationFile.exists() && !destinationFile.delete()) {
-                fail("could not delete destination file " + destinationFile);
+            if ((expected != null) &&
+                    expected.exists() && !expected.delete()) {
+                fail("could not delete destination dir " + expected);
             }
             if (!destinationDir.delete()) {
                 fail("could not delete destination dir " + destinationDir);
             }
+
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * CopyingEmptySourceDirNonRecursiveTest.java
+ * FileCopierTest.java
  *
  * Created on 22. April 2008, 14:21
  *
@@ -28,9 +28,9 @@ import static org.junit.Assert.*;
 
 /**
  * Some tests for the file copier
- * @author ronny
+ * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
-public class CopyingEmptySourceDirNonRecursiveTest {
+public class CopyEmptySourceDirRecursiveTest {
 
     private final File tmpDir = new File(System.getProperty("java.io.tmpdir") +
             File.separatorChar + "filecopiertest");
@@ -62,28 +62,29 @@ public class CopyingEmptySourceDirNonRecursiveTest {
      * @throws Exception if an exception occurs
      */
     @Test
-    public void testCopyingEmptySourceDirNonRecursive() throws Exception {
+    public void testCopyingEmptySourceDirRecursive() throws Exception {
 
+        File expected = null;
         try {
             // try copying the empty directory
             CopyJob copyJob = new CopyJob(
-                    new Source[]{
-                        new Source(sourceDir.getParent(), sourceDir.getName())
-                    },
-                    new String[]{
-                        destinationDir.getPath()
-                    },
-                    false);
+                    new Source[]{new Source(sourceDir.getPath())},
+                    new String[]{destinationDir.getPath()});
             fileCopier.copy(copyJob);
 
             // check
-            File expected = new File(destinationDir, sourceDir.getName());
-            assertFalse("destination was created", expected.exists());
+            expected = new File(destinationDir, sourceDir.getName());
+            assertTrue("destination was not created", expected.exists());
+            assertTrue("destination is no directory", expected.isDirectory());
 
         } finally {
 
+            // cleanup
             if (!sourceDir.delete()) {
                 fail("could not delete source dir " + sourceDir);
+            }
+            if ((expected != null) && expected.exists() && !expected.delete()) {
+                fail("could not delete destination dir " + expected);
             }
             if (!destinationDir.delete()) {
                 fail("could not delete destination dir " + destinationDir);

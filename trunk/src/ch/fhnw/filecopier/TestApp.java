@@ -48,7 +48,7 @@ public class TestApp extends javax.swing.JFrame {
                     // Unix example
                     Source[] sources = new Source[]{
                         // all files from directory /home/user/source1/
-                        new Source("/home/user/source1/", ".*"),
+                        new Source("/home/user/source1/"),
                         // all *.java files from directory /home/user/source2/
                         new Source("/home/user/source2/", ".*\\.java")
                     };
@@ -56,19 +56,14 @@ public class TestApp extends javax.swing.JFrame {
                         "/home/user/destination1",
                         "/home/user/destination2"
                     };
-                    CopyJob unixCopyJob = new CopyJob(sources, destinations, true/*recursive*/);
-                    fileCopier.copy(unixCopyJob);
+                    CopyJob unixCopyJob = new CopyJob(sources, destinations);
 
                     // Windows example
                     CopyJob windowsCopyJob = new CopyJob(
-                            new Source[]{
-                                new Source("C:\\", "Test\\.txt")
-                            },
-                            new String[]{
-                                "C:\\Test2.txt"
-                            },
-                            false);
-                    fileCopier.copy(windowsCopyJob);
+                            new Source[]{new Source("C:\\Test.txt")},
+                            new String[]{"C:\\Test2.txt"});
+
+                    fileCopier.copy(unixCopyJob, windowsCopyJob);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
