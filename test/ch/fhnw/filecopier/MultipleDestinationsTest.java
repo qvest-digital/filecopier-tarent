@@ -18,6 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ch.fhnw.filecopier;
 
 import java.io.BufferedInputStream;
@@ -36,7 +37,7 @@ import static org.junit.Assert.*;
 
 /**
  * Some tests for the file copier
- * @author ronny
+ * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
 public class MultipleDestinationsTest {
 
@@ -104,14 +105,11 @@ public class MultipleDestinationsTest {
 
             // copy source file in both destination directories
             CopyJob copyJob = new CopyJob(
-                    new Source[]{
-                        new Source(sourceFile.getParent(), sourceFile.getName())
-                    },
+                    new Source[]{new Source(sourceFile.getPath())},
                     new String[]{
                         destinationDir.getPath(),
                         destinationDir2.getPath()
-                    },
-                    true);
+                    });
             fileCopier.copy(copyJob);
 
             // check both destination files

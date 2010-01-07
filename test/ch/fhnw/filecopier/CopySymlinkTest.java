@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 
 /**
  * Some tests for the file copier
- * @author ronny
+ * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
 public class CopySymlinkTest {
 
@@ -99,13 +99,8 @@ public class CopySymlinkTest {
 
             // copy file and symlink
             CopyJob copyJob = new CopyJob(
-                    new Source[]{
-                        new Source(sourceDir.getPath(), ".*")
-                    },
-                    new String[]{
-                        destinationDir.getPath()
-                    },
-                    true);
+                    new Source[]{new Source(sourceDir.getPath(), ".*")},
+                    new String[]{destinationDir.getPath()});
             fileCopier.copy(copyJob);
 
             // check

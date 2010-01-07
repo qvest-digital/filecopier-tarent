@@ -1,14 +1,8 @@
-- overwrite single file does not work, when second job
-  cp /datei1 /datei2
+- optimization: 
+    - define at source, if it must be scanned or if it is a single file
+    - when source is a directory, do not scan parent directory
 
-- unit tests schreiben (alle wenn möglich rekursiv und nicht rekursiv)
-    - einzelne Datei in Verzeichnis                 (x)
-    - leeres Verzeichnis in Verzeichnis             (x)
-    - leeres Verzeichnis in Datei                   (x)
-    - volles Verzeichnis in Verzeichnis             (x)
-    - volles Verzeichnis in Datei                   ( )
-    - RegEx in Verzeichnis                          ( )
-    - RegEx in Datei                                ( )
+- define recusiveness in source (not in copyjob)
 
 - unit tests mit (nicht) existierenden Zielen
 

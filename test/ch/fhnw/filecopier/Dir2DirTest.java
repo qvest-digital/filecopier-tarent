@@ -18,18 +18,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package ch.fhnw.filecopier;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.regex.Pattern;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
  * Some tests for the file copier
- * @author ronny
+ * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
 public class Dir2DirTest {
 
@@ -66,59 +66,59 @@ public class Dir2DirTest {
     @Test
     public void testFullDir2Dir() throws IOException {
 
-        // create a test file in the source directory
-        File testFile = new File(sourceDir, "testFile");
+        File testFile = null;
+        File expectedDir = null;
+        File expectedFile = null;
+
         try {
-            if (!testFile.createNewFile()) {
-                fail("could not create test file " + testFile);
+
+            // create a test file in the source directory
+            testFile = new File(sourceDir, "testFile");
+            try {
+                if (!testFile.createNewFile()) {
+                    fail("could not create test file " + testFile);
+                }
+            } catch (IOException ex) {
+                System.out.println("Could not create " + testFile);
+                throw ex;
             }
-        } catch (IOException ex) {
-            System.out.println("Could not create " + testFile);
-            throw ex;
-        }
 
-        // try copying the source directory (recursive)
-        String searchPattern =
-                sourceDir.getName() + Pattern.quote(File.separator) + ".*";
-        CopyJob copyJob = new CopyJob(
-                new Source[]{
-                    new Source(sourceDir.getParent(), searchPattern)
-                },
-                new String[]{
-                    destinationDir.getPath()
-                },
-                true);
-        fileCopier.copy(copyJob);
+            // try copying the source directory (recursive)
+            CopyJob copyJob = new CopyJob(
+                    new Source[]{new Source(sourceDir.getPath())},
+                    new String[]{destinationDir.getPath()});
+            fileCopier.copy(copyJob);
 
-        // check
-        File expectedDir = new File(destinationDir, sourceDir.getName());
-        boolean dirExists = expectedDir.exists();
-        boolean dirIsDir = expectedDir.isDirectory();
-        File expectedFile = new File(expectedDir, testFile.getName());
-        boolean fileExists = expectedFile.exists();
-        boolean fileIsFile = expectedFile.isFile();
+            // check
+            expectedDir = new File(destinationDir, sourceDir.getName());
+            expectedFile = new File(expectedDir, testFile.getName());
+            assertTrue("destination directory was not created",
+                    expectedDir.exists());
+            assertTrue("destination directory is no directory",
+                    expectedDir.isDirectory());
+            assertTrue("destination file was not created",
+                    expectedFile.exists());
+            assertTrue("destination file is no file",
+                    expectedFile.isFile());
 
-        // cleanup
-        if (!testFile.delete()) {
-            fail("could not delete test file " + testFile);
+        } finally {
+            if ((testFile != null) && testFile.exists() && !testFile.delete()) {
+                fail("could not delete test file " + testFile);
+            }
+            if (!sourceDir.delete()) {
+                fail("could not delete source dir " + sourceDir);
+            }
+            if ((expectedFile != null) &&
+                    expectedFile.exists() && !expectedFile.delete()) {
+                fail("could not delete destination file " + expectedFile);
+            }
+            if ((expectedDir != null) &&
+                    expectedDir.exists() && !expectedDir.delete()) {
+                fail("could not delete destination dir " + expectedDir);
+            }
+            if (!destinationDir.delete()) {
+                fail("could not delete destination dir " + destinationDir);
+            }
         }
-        if (!sourceDir.delete()) {
-            fail("could not delete source dir " + sourceDir);
-        }
-        if (expectedFile.exists() && !expectedFile.delete()) {
-            fail("could not delete destination file " + expectedFile);
-        }
-        if (!expectedDir.delete()) {
-            fail("could not delete destination dir " + expectedDir);
-        }
-        if (!destinationDir.delete()) {
-            fail("could not delete destination dir " + destinationDir);
-        }
-
-        // final check
-        assertTrue("destination directory was not created", dirExists);
-        assertTrue("destination directory is no directory", dirIsDir);
-        assertTrue("destination file was not created", fileExists);
-        assertTrue("destination file is no file", fileIsFile);
     }
 }

@@ -29,21 +29,18 @@ import java.util.List;
  */
 public class CopyJob {
 
-    private final boolean recursive;
     private final Source[] sources;
     private final String[] destinations;
     private List<DirectoryInfo> directoryInfos;
 
     /**
      * A class representing a copy job.
-     * @param recursive if the sources must be evaluated recursively
      * @param destinations the destinations
      * @param sources the sources
      */
-    public CopyJob(Source[] sources, String[] destinations, boolean recursive) {
+    public CopyJob(Source[] sources, String[] destinations) {
         this.sources = sources;
         this.destinations = destinations;
-        this.recursive = recursive;
     }
 
     /**
@@ -60,14 +57,6 @@ public class CopyJob {
      */
     public String[] getDestinations() {
         return destinations;
-    }
-
-    /**
-     * returns true, if the job is recursive, false otherwise
-     * @return true, if the job is recursive, false otherwise
-     */
-    public boolean isRecursive() {
-        return recursive;
     }
 
     /**

@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
 
 /**
  * Some tests for the file copier
- * @author ronny
+ * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
 public class OverwriteSingleFileAsSecondJobTest {
 
@@ -123,58 +123,49 @@ public class OverwriteSingleFileAsSecondJobTest {
 
             // try copying the test files
             CopyJob copyJob1 = new CopyJob(
-                    new Source[]{
-                        new Source(singleFile.getParent(), singleFile.getName())
-                    },
-                    new String[]{
-                        existingDestinationFile1.getPath()
-                    },
-                    false);
+                    new Source[]{new Source(singleFile.getPath())},
+                    new String[]{existingDestinationFile1.getPath()});
             CopyJob copyJob2 = new CopyJob(
-                    new Source[]{
-                        new Source(singleFile.getParent(), singleFile.getName())
-                    },
-                    new String[]{
-                        existingDestinationFile2.getPath()
-                    },
-                    false);
+                    new Source[]{new Source(singleFile.getPath())},
+                    new String[]{existingDestinationFile2.getPath()});
             fileCopier.copy(copyJob1, copyJob2);
 
             // check
             expected = new File(destinationDir, "existingFile2");
-            boolean exists = expected.exists();
-            boolean isFile = expected.isFile();
             FileReader fileReader = new FileReader(expected);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String line = bufferedReader.readLine();
             bufferedReader.close();
             fileReader.close();
-            boolean contentMatch = content.equals(line);
+
+            assertTrue("destination was not created", expected.exists());
+            assertTrue("destination is no file", expected.isFile());
+            assertTrue("the file was not copied", content.equals(line));
+
+        } finally {
 
             // cleanup
-
-            // final check
-            assertTrue("destination was not created", exists);
-            assertTrue("destination is no file", isFile);
-            assertTrue("the file was not copied", contentMatch);
-        } finally {
             if ((singleFile != null) &&
                     singleFile.exists() && !singleFile.delete()) {
                 fail("could not delete source file " + singleFile);
             }
+
             if (!sourceDir.delete()) {
                 fail("could not delete source dir " + sourceDir);
             }
+
             if ((existingDestinationFile1 != null) &&
                     existingDestinationFile1.exists() &&
                     !existingDestinationFile1.delete()) {
                 fail("could not delete destination file " +
                         existingDestinationFile1);
             }
+
             if ((expected != null) &&
                     expected.exists() && !expected.delete()) {
                 fail("could not delete destination file " + expected);
             }
+
             if (!destinationDir.delete()) {
                 fail("could not delete destination dir " + destinationDir);
             }

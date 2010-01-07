@@ -186,7 +186,7 @@ public class FileCopier {
                 }
                 DirectoryInfo tmpInfo = expand(baseDirectoryPathLength,
                         baseDirectory, source.getPattern(),
-                        copyJob.isRecursive());
+                        source.isRecursive());
                 if (tmpInfo != null) {
                     directoryInfos.add(tmpInfo);
                     byteCount += tmpInfo.getByteCount();
