@@ -41,13 +41,13 @@
         <span class="comment">// all files from directory /home/user/source1/</span>
         <span class="keyword-directive">new</span> Source(<span class="character">&quot;</span><span class="character">/home/user/source1/</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">.*</span><span class="character">&quot;</span>),
         <span class="comment">// all *.java files from directory /home/user/source2/</span>
-        <span class="keyword-directive">new</span> Source(<span class="character">&quot;</span><span class="character">/home/user/so</span><span class="character">urce2/</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">.*</span><span class="ST1">\\</span><span class="character">.java</span><span class="character">&quot;</span>)
+        <span class="keyword-directive">new</span> Source(<span class="character">&quot;</span><span class="character">/home/user/source2/</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">.*</span><span class="ST1">\\</span><span class="character">.java</span><span class="character">&quot;</span>)
     };
     String[] destinations = <span class="keyword-directive">new</span> String[]{
-        <span class="character">&quot;</span><span class="character">/home/user/destination</span><span class="character">1</span><span class="character">&quot;</span>,
+        <span class="character">&quot;</span><span class="character">/home/user/destination1</span><span class="character">&quot;</span>,
         <span class="character">&quot;</span><span class="character">/home/user/destination2</span><span class="character">&quot;</span>
     };
-    CopyJob copyJob = <span class="keyword-directive">new</span> CopyJob(sources, destinations, <span class="keyword-directive">true</span><span class="comment">/*recursive*/</span>);
+    CopyJob copyJob = <span class="keyword-directive">new</span> CopyJob(sources, destinations);
         </pre>
         <p>
             If you are done with defining your copy jobs you can let them
