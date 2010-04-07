@@ -1,3 +1,6 @@
+2010-04-07
+    - NEW: added Turkish and Albanian translation
+
 2010-01-07
     - NEW: moved "recursive" property from copyjob to source
     - FIX: shutdown executor service after completing all copyjobs
