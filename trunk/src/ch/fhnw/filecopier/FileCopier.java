@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ch.fhnw.filecopier;
 
 import java.beans.PropertyChangeListener;
@@ -242,14 +241,14 @@ public class FileCopier {
                         File sourceFile =
                                 directoryInfos.get(0).getFiles().get(0);
                         if (sourceFile.isDirectory()) {
-                            throw new IOException("can not overwrite file \"" +
-                                    destinationFile + "\" with directory \"" +
-                                    sourceFile + "\"");
+                            throw new IOException("can not overwrite file \""
+                                    + destinationFile + "\" with directory \""
+                                    + sourceFile + "\"");
                         }
                     } else {
                         StringBuilder errorMessage = new StringBuilder(
-                                "can not copy several files to another file\n" +
-                                " sources:");
+                                "can not copy several files to another file\n"
+                                + " sources:");
                         for (DirectoryInfo directoryInfo : directoryInfos) {
                             List<File> files = directoryInfo.getFiles();
                             for (File file : files) {
@@ -287,22 +286,22 @@ public class FileCopier {
                         for (File destinationFile : destinationFiles) {
                             if (destinationFile.exists()) {
                                 if (destinationFile.isDirectory()) {
-                                    LOGGER.info("Directory \"" +
-                                            destinationFile +
-                                            "\" already exists");
+                                    LOGGER.info("Directory \""
+                                            + destinationFile
+                                            + "\" already exists");
                                 } else {
-                                    throw new IOException("can not overwrite " +
-                                            "file \"" + destinationFile +
-                                            "\" with directory \"" +
-                                            sourceFile + "\"");
+                                    throw new IOException("can not overwrite "
+                                            + "file \"" + destinationFile
+                                            + "\" with directory \""
+                                            + sourceFile + "\"");
                                 }
                             } else {
-                                LOGGER.info("Creating directory \"" +
-                                        destinationFile + "\"");
+                                LOGGER.info("Creating directory \""
+                                        + destinationFile + "\"");
                                 if (!destinationFile.mkdirs()) {
                                     throw new IOException(
-                                            "Could not create directory \"" +
-                                            destinationFile + "\"");
+                                            "Could not create directory \""
+                                            + destinationFile + "\"");
                                 }
                             }
                         }
@@ -349,8 +348,8 @@ public class FileCopier {
     private DirectoryInfo expand(int baseDirectoryPathLength,
             File currentDirectory, Pattern pattern, boolean recursive) {
 
-        LOGGER.info("\n\tcurrent directory: \"" + currentDirectory +
-                "\"\n\tpattern: \"" + pattern + "\"");
+        LOGGER.info("\n\tcurrent directory: \"" + currentDirectory
+                + "\"\n\tpattern: \"" + pattern + "\"");
 
         // feed the listeners
         propertyChangeSupport.firePropertyChange(
@@ -470,8 +469,8 @@ public class FileCopier {
                 long time = stop - sliceStartTime;
                 LOGGER.finest("time = " + NUMBER_FORMAT.format(time) + " ms");
                 if (time != 0) {
-                    long newSlice = (slice * slice * updateTime) /
-                            (time * transferVolume);
+                    long newSlice = (slice * slice * updateTime)
+                            / (time * transferVolume);
                     // just using newSlice here leads to overmodulation
                     // doubling or halving is the slower (and probably better)
                     // approach
@@ -479,15 +478,13 @@ public class FileCopier {
                     long halfSlice = slice / 2;
                     if (newSlice > doubleSlice) {
                         slice = doubleSlice;
-                    } else if (newSlice < halfSlice) {
-                        if (halfSlice > 0) {
-                            slice = halfSlice;
-                        }
+                    } else if ((newSlice < halfSlice) && (halfSlice > 0)) {
+                        slice = halfSlice;
                     }
                     transferVolume = Math.min(slice, sourceLength - position);
-                    LOGGER.finest("\nslice = " + NUMBER_FORMAT.format(slice) +
-                            " Byte\ntransferVolume = " +
-                            NUMBER_FORMAT.format(transferVolume) + " Byte");
+                    LOGGER.finest("\nslice = " + NUMBER_FORMAT.format(slice)
+                            + " Byte\ntransferVolume = "
+                            + NUMBER_FORMAT.format(transferVolume) + " Byte");
                 }
                 sliceStartTime = System.currentTimeMillis();
             }
@@ -496,9 +493,9 @@ public class FileCopier {
         // start the transfer process
         position = 0;
         transferVolume = Math.min(slice, sourceLength);
-        LOGGER.finest("\nslice = " + NUMBER_FORMAT.format(slice) +
-                " Byte\ntransferVolume = " +
-                NUMBER_FORMAT.format(transferVolume) + " Byte");
+        LOGGER.finest("\nslice = " + NUMBER_FORMAT.format(slice)
+                + " Byte\ntransferVolume = "
+                + NUMBER_FORMAT.format(transferVolume) + " Byte");
         sliceStartTime = System.currentTimeMillis();
 
         ExecutorService executorService = Executors.newCachedThreadPool();
@@ -539,9 +536,9 @@ public class FileCopier {
                     long transferredBytes = 0;
                     while (transferredBytes < transferVolume) {
                         if (LOGGER.isLoggable(Level.FINE)) {
-                            LOGGER.fine("position = " + position +
-                                    ", transferredBytes = " + transferredBytes +
-                                    ", transferVolume = " + transferVolume);
+                            LOGGER.fine("position = " + position
+                                    + ", transferredBytes = " + transferredBytes
+                                    + ", transferVolume = " + transferVolume);
                         }
                         long transferSize = destinationChannel.transferFrom(
                                 sourceChannel, position,
