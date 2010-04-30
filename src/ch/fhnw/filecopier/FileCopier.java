@@ -480,7 +480,9 @@ public class FileCopier {
                     if (newSlice > doubleSlice) {
                         slice = doubleSlice;
                     } else if (newSlice < halfSlice) {
-                        slice = halfSlice;
+                        if (halfSlice > 0) {
+                            slice = halfSlice;
+                        }
                     }
                     transferVolume = Math.min(slice, sourceLength - position);
                     LOGGER.finest("\nslice = " + NUMBER_FORMAT.format(slice) +
