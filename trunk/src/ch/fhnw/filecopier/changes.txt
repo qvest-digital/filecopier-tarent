@@ -1,3 +1,7 @@
+2010-06-01
+    - FIX: fixed bandwith/slice calculation
+    - FIX: fixed copy/reset handling
+
 2010-04-30
     - FIX: do not allow slice size to drop to zero
 
