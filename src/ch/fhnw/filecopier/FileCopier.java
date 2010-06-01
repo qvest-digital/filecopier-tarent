@@ -85,12 +85,13 @@ public class FileCopier {
     private State state = State.START;
     private final static Logger LOGGER =
             Logger.getLogger(FileCopier.class.getName());
+    // the copy intervall we want to get in ms
+    private static final int WANTED_TIME = 1000;
     private final PropertyChangeSupport propertyChangeSupport =
             new PropertyChangeSupport(this);
     private long byteCount;
     private long oldCopiedBytes;
     private long copiedBytes;
-    private int updateTime = 1000; // the intervall we want to get
     private final static NumberFormat NUMBER_FORMAT =
             NumberFormat.getInstance();
     private long position;
@@ -469,8 +470,9 @@ public class FileCopier {
                 long time = stop - sliceStartTime;
                 LOGGER.finest("time = " + NUMBER_FORMAT.format(time) + " ms");
                 if (time != 0) {
-                    long newSlice = (slice * slice * updateTime)
-                            / (time * transferVolume);
+                    // bandwidth = transferVolume / time
+                    // newSlice = bandwith * WANTED_TIME
+                    long newSlice = (transferVolume * WANTED_TIME) / time;
                     // just using newSlice here leads to overmodulation
                     // doubling or halving is the slower (and probably better)
                     // approach
