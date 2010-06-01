@@ -1,4 +1,5 @@
 2010-06-01
+    - RELEASE 0.9.6
     - FIX: fixed bandwith/slice calculation
     - FIX: fixed copy/reset handling
 
