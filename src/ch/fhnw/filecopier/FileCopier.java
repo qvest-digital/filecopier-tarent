@@ -143,8 +143,6 @@ public class FileCopier {
      * resets the copier so that another copy operation can be started
      */
     public void reset() {
-        byteCount = 0;
-        copiedBytes = 0;
         State previousState = state;
         state = State.START;
         propertyChangeSupport.firePropertyChange(
@@ -157,6 +155,8 @@ public class FileCopier {
      * @throws java.io.IOException if an I/O exception occurs
      */
     public void copy(CopyJob... copyJobs) throws IOException {
+        byteCount = 0;
+        copiedBytes = 0;
 
         // feed our property change listeners
         State previousState = state;
