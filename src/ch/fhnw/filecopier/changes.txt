@@ -1,3 +1,7 @@
+2011-01-01
+    - RELEASE 0.9.7
+    - NEW: improved FileCopierPanel
+
 2010-06-01
     - RELEASE 0.9.6
     - FIX: fixed bandwith/slice calculation

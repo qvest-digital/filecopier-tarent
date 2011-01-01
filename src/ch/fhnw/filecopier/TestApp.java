@@ -31,7 +31,8 @@ import javax.swing.SwingWorker;
  */
 public class TestApp extends javax.swing.JFrame {
 
-    private final Logger logger = Logger.getLogger(TestApp.class.getName());
+    private static final Logger LOGGER =
+            Logger.getLogger(TestApp.class.getName());
 
     /** Creates new form TestApp */
     public TestApp() {
@@ -65,7 +66,7 @@ public class TestApp extends javax.swing.JFrame {
 
                     fileCopier.copy(unixCopyJob, windowsCopyJob);
                 } catch (Exception ex) {
-                    logger.log(Level.SEVERE, null, ex);
+                    LOGGER.log(Level.SEVERE, null, ex);
                 }
                 return null;
             }
@@ -95,13 +96,11 @@ public class TestApp extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(fileCopierPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(fileCopierPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 337, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(fileCopierPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(19, Short.MAX_VALUE))
+            .addComponent(fileCopierPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
