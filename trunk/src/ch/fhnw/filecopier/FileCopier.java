@@ -253,11 +253,12 @@ public class FileCopier {
                         for (DirectoryInfo directoryInfo : directoryInfos) {
                             List<File> files = directoryInfo.getFiles();
                             for (File file : files) {
-                                errorMessage.append("  " + file.getPath());
+                                errorMessage.append("  ");
+                                errorMessage.append(file.getPath());
                             }
                         }
-                        errorMessage.append(
-                                " destination: " + destinationFile.getPath());
+                        errorMessage.append(" destination: ");
+                        errorMessage.append(destinationFile.getPath());
                         throw new IOException(errorMessage.toString());
                     }
                 }
@@ -287,9 +288,9 @@ public class FileCopier {
                         for (File destinationFile : destinationFiles) {
                             if (destinationFile.exists()) {
                                 if (destinationFile.isDirectory()) {
-                                    LOGGER.info("Directory \""
-                                            + destinationFile
-                                            + "\" already exists");
+                                    LOGGER.log(Level.INFO,
+                                            "Directory \"{0}\" already exists",
+                                            destinationFile);
                                 } else {
                                     throw new IOException("can not overwrite "
                                             + "file \"" + destinationFile
@@ -297,8 +298,9 @@ public class FileCopier {
                                             + sourceFile + "\"");
                                 }
                             } else {
-                                LOGGER.info("Creating directory \""
-                                        + destinationFile + "\"");
+                                LOGGER.log(Level.INFO,
+                                        "Creating directory \"{0}\"",
+                                        destinationFile);
                                 if (!destinationFile.mkdirs()) {
                                     throw new IOException(
                                             "Could not create directory \""
@@ -349,25 +351,28 @@ public class FileCopier {
     private DirectoryInfo expand(int baseDirectoryPathLength,
             File currentDirectory, Pattern pattern, boolean recursive) {
 
-        LOGGER.info("\n\tcurrent directory: \"" + currentDirectory
-                + "\"\n\tpattern: \"" + pattern + "\"");
+        if (LOGGER.isLoggable(Level.INFO)) {
+            LOGGER.log(Level.INFO,
+                    "\n\tcurrent directory: \"{0}\"\n\tpattern: \"{1}\"",
+                    new Object[]{currentDirectory, pattern});
+        }
 
         // feed the listeners
         propertyChangeSupport.firePropertyChange(
                 FILE_PROPERTY, null, currentDirectory);
 
         if (!currentDirectory.exists()) {
-            LOGGER.warning(currentDirectory + " does not exist");
+            LOGGER.log(Level.WARNING, "{0} does not exist", currentDirectory);
             return null;
         }
 
         if (!currentDirectory.isDirectory()) {
-            LOGGER.warning(currentDirectory + " is no directory");
+            LOGGER.log(Level.WARNING, "{0} is no directory", currentDirectory);
             return null;
         }
 
         if (!currentDirectory.canRead()) {
-            LOGGER.warning("can not read " + currentDirectory);
+            LOGGER.log(Level.WARNING, "can not read {0}", currentDirectory);
             return null;
         }
 
@@ -375,7 +380,7 @@ public class FileCopier {
             throw new IllegalArgumentException("pattern must not be null");
         }
 
-        LOGGER.fine("recursing directory " + currentDirectory);
+        LOGGER.log(Level.FINE, "recursing directory {0}", currentDirectory);
         long tmpByteCount = 0;
         List<File> files = new ArrayList<File>();
         for (File subFile : currentDirectory.listFiles()) {
@@ -384,7 +389,7 @@ public class FileCopier {
             String relativePath =
                     subFile.getPath().substring(baseDirectoryPathLength);
             if (pattern.matcher(relativePath).matches()) {
-                LOGGER.fine(subFile + " matches");
+                LOGGER.log(Level.FINE, "{0} matches", subFile);
                 if (subFile.isDirectory()) {
                     // copy directories itself only when using recursive mode
                     if (recursive) {
@@ -395,7 +400,7 @@ public class FileCopier {
                     tmpByteCount += subFile.length();
                 }
             } else {
-                LOGGER.fine(subFile + " does not match");
+                LOGGER.log(Level.FINE, "{0} does not match", subFile);
             }
 
             // recurse directories
@@ -468,7 +473,10 @@ public class FileCopier {
                 // determine next slice size before releasing the barrier
                 long stop = System.currentTimeMillis();
                 long time = stop - sliceStartTime;
-                LOGGER.finest("time = " + NUMBER_FORMAT.format(time) + " ms");
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "time = {0} ms",
+                            NUMBER_FORMAT.format(time));
+                }
                 if (time != 0) {
                     // bandwidth = transferVolume / time
                     // newSlice = bandwith * WANTED_TIME
@@ -484,9 +492,14 @@ public class FileCopier {
                         slice = halfSlice;
                     }
                     transferVolume = Math.min(slice, sourceLength - position);
-                    LOGGER.finest("\nslice = " + NUMBER_FORMAT.format(slice)
-                            + " Byte\ntransferVolume = "
-                            + NUMBER_FORMAT.format(transferVolume) + " Byte");
+                    if (LOGGER.isLoggable(Level.FINEST)) {
+                        LOGGER.log(Level.FINEST,
+                                "\nslice = {0} Byte\ntransferVolume = {1} Byte",
+                                new Object[]{
+                                    NUMBER_FORMAT.format(slice),
+                                    NUMBER_FORMAT.format(transferVolume)
+                                });
+                    }
                 }
                 sliceStartTime = System.currentTimeMillis();
             }
@@ -495,9 +508,14 @@ public class FileCopier {
         // start the transfer process
         position = 0;
         transferVolume = Math.min(slice, sourceLength);
-        LOGGER.finest("\nslice = " + NUMBER_FORMAT.format(slice)
-                + " Byte\ntransferVolume = "
-                + NUMBER_FORMAT.format(transferVolume) + " Byte");
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST,
+                    "\nslice = {0} Byte\ntransferVolume = {1} Byte",
+                    new Object[]{
+                        NUMBER_FORMAT.format(slice),
+                        NUMBER_FORMAT.format(transferVolume)
+                    });
+        }
         sliceStartTime = System.currentTimeMillis();
 
         ExecutorService executorService = Executors.newCachedThreadPool();
@@ -538,16 +556,19 @@ public class FileCopier {
                     long transferredBytes = 0;
                     while (transferredBytes < transferVolume) {
                         if (LOGGER.isLoggable(Level.FINE)) {
-                            LOGGER.fine("position = " + position
-                                    + ", transferredBytes = " + transferredBytes
-                                    + ", transferVolume = " + transferVolume);
+                            LOGGER.log(Level.FINE,
+                                    "position = {0}, transferredBytes = {1}, transferVolume = {2}",
+                                    new Object[]{
+                                        position,
+                                        transferredBytes,
+                                        transferVolume
+                                    });
                         }
                         long transferSize = destinationChannel.transferFrom(
                                 sourceChannel, position,
                                 transferVolume - transferredBytes);
-                        if (LOGGER.isLoggable(Level.FINE)) {
-                            LOGGER.fine("transferSize = " + transferSize);
-                        }
+                        LOGGER.log(Level.FINE,
+                                "transferSize = {0}", transferSize);
                         transferredBytes += transferSize;
                     }
                     // wait for all other Transferrers to finish their slice

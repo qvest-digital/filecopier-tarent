@@ -5,10 +5,22 @@
 <project name="FileCopier" default="default" basedir=".">
     <description>Builds, tests, and runs the project FileCopier.</description>
     <import file="nbproject/build-impl.xml"/>
-    
+
+    <target name="1_sort_strings">
+        <exec executable="sh">
+            <arg value="sort_strings.sh"></arg>
+        </exec>
+    </target>
+
+    <target name="2_check_strings">
+        <exec executable="sh">
+            <arg value="check_strings.sh"></arg>
+        </exec>
+    </target>
+
     <!-- Our own Jar Building Target -->
     <target name="jar" depends="init,compile,-javadoc-build" description="Build JAR.">
-        
+
         <!-- Increase build number and timestamp -->
         <buildnumber file="src/ch/fhnw/filecopier/build.number"/>
         <propertyfile file="src/ch/fhnw/filecopier/build.number">
@@ -18,11 +30,11 @@
             file="src/ch/fhnw/filecopier/build.number"
             tofile="build/classes/ch/fhnw/filecopier/build.number"
             overwrite="true"/>
-        
+
         <!-- load the properties to get access to the Java File Copy Library
         version -->
         <property file="src/ch/fhnw/filecopier/build.number"/>
-        
+
         <!-- library distribution (only class files, no examples) -->
         <jar
             destfile="dist/java_file_copy_library-${jfcl_version}.jar"
@@ -33,7 +45,7 @@
             file="dist/java_file_copy_library-${jfcl_version}.jar"
             tofile="dist/java_file_copy_library.jar"
             overwrite="true"/>
-        
+
         <!-- complete distribution (including class files, examples, source and javadoc) -->
         <jar destfile="dist/java_file_copy_library-${jfcl_version}_all.jar" basedir="build/classes/"/>
         <jar destfile="dist/java_file_copy_library-${jfcl_version}_all.jar" basedir="src/" update="true"/>
