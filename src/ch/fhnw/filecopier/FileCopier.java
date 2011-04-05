@@ -494,8 +494,10 @@ public class FileCopier {
                     transferVolume = Math.min(slice, sourceLength - position);
                     if (LOGGER.isLoggable(Level.FINEST)) {
                         LOGGER.log(Level.FINEST,
-                                "\nslice = {0} Byte\ntransferVolume = {1} Byte",
+                                "position: {0}, slice = {1} byte, "
+                                + "transferVolume = {2} byte",
                                 new Object[]{
+                                    NUMBER_FORMAT.format(position),
                                     NUMBER_FORMAT.format(slice),
                                     NUMBER_FORMAT.format(transferVolume)
                                 });
@@ -510,8 +512,10 @@ public class FileCopier {
         transferVolume = Math.min(slice, sourceLength);
         if (LOGGER.isLoggable(Level.FINEST)) {
             LOGGER.log(Level.FINEST,
-                    "\nslice = {0} Byte\ntransferVolume = {1} Byte",
+                    "position: {0}, slice = {1} byte, "
+                    + "transferVolume = {2} byte",
                     new Object[]{
+                        NUMBER_FORMAT.format(position),
                         NUMBER_FORMAT.format(slice),
                         NUMBER_FORMAT.format(transferVolume)
                     });
@@ -555,20 +559,21 @@ public class FileCopier {
                     // transfer the current slice
                     long transferredBytes = 0;
                     while (transferredBytes < transferVolume) {
-                        if (LOGGER.isLoggable(Level.FINE)) {
-                            LOGGER.log(Level.FINE,
-                                    "position = {0}, transferredBytes = {1}, transferVolume = {2}",
+                        long count = transferVolume - transferredBytes;
+                        if (LOGGER.isLoggable(Level.FINEST)) {
+                            LOGGER.log(Level.FINEST, "already transferred = {0} "
+                                    + "byte, to be transferred = {1} byte",
                                     new Object[]{
-                                        position,
-                                        transferredBytes,
-                                        transferVolume
+                                        NUMBER_FORMAT.format(transferredBytes),
+                                        NUMBER_FORMAT.format(count)
                                     });
                         }
                         long transferSize = destinationChannel.transferFrom(
-                                sourceChannel, position,
-                                transferVolume - transferredBytes);
-                        LOGGER.log(Level.FINE,
-                                "transferSize = {0}", transferSize);
+                                sourceChannel, position, count);
+                        if (LOGGER.isLoggable(Level.FINEST)) {
+                            LOGGER.log(Level.FINEST, "{0} byte transferred",
+                                    NUMBER_FORMAT.format(transferSize));
+                        }
                         transferredBytes += transferSize;
                     }
                     // wait for all other Transferrers to finish their slice
