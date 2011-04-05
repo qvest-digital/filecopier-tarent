@@ -556,25 +556,25 @@ public class FileCopier {
         public void run() {
             try {
                 while (position < sourceLength) {
-                    // transfer the current slice
-                    long transferredBytes = 0;
-                    while (transferredBytes < transferVolume) {
-                        long count = transferVolume - transferredBytes;
+                    // transfer the currently planned volume
+                    long transferred = 0;
+                    while (transferred < transferVolume) {
+                        long count = transferVolume - transferred;
                         if (LOGGER.isLoggable(Level.FINEST)) {
-                            LOGGER.log(Level.FINEST, "already transferred = {0} "
-                                    + "byte, to be transferred = {1} byte",
+                            LOGGER.log(Level.FINEST, "already transferred = "
+                                    + "{0} byte, to be transferred = {1} byte",
                                     new Object[]{
-                                        NUMBER_FORMAT.format(transferredBytes),
+                                        NUMBER_FORMAT.format(transferred),
                                         NUMBER_FORMAT.format(count)
                                     });
                         }
-                        long transferSize = destinationChannel.transferFrom(
+                        long tmpTransferred = destinationChannel.transferFrom(
                                 sourceChannel, position, count);
                         if (LOGGER.isLoggable(Level.FINEST)) {
                             LOGGER.log(Level.FINEST, "{0} byte transferred",
-                                    NUMBER_FORMAT.format(transferSize));
+                                    NUMBER_FORMAT.format(tmpTransferred));
                         }
-                        transferredBytes += transferSize;
+                        transferred += tmpTransferred;
                     }
                     // wait for all other Transferrers to finish their slice
                     barrier.await();
