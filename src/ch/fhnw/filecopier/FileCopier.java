@@ -40,8 +40,9 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
- * A class for copying files and directories. It can be used headless.
- * This class is NOT threadsafe!
+ * A class for copying files and directories. It can be used headless. This
+ * class is NOT threadsafe!
+ *
  * @author Ronny Standtke <Ronny.Standtke@gmx.net>
  */
 public class FileCopier {
@@ -103,6 +104,7 @@ public class FileCopier {
 
     /**
      * Add a listener for property changes.
+     *
      * @param property the property that changes
      * @param listener the listener for the change
      */
@@ -114,6 +116,7 @@ public class FileCopier {
 
     /**
      * Remove a listener for property changes.
+     *
      * @param property the property that changes
      * @param listener the listener for property changes
      */
@@ -125,6 +128,7 @@ public class FileCopier {
 
     /**
      * returns the byte count of all source files
+     *
      * @return the byte count of all source files
      */
     public long getByteCount() {
@@ -133,6 +137,7 @@ public class FileCopier {
 
     /**
      * returns the sum of all bytes copied so far
+     *
      * @return the sum of all bytes copied so far
      */
     public long getCopiedBytes() {
@@ -151,6 +156,7 @@ public class FileCopier {
 
     /**
      * copies source files to a given destination
+     *
      * @param copyJobs all copyjobs to execute
      * @throws java.io.IOException if an I/O exception occurs
      */
@@ -174,7 +180,7 @@ public class FileCopier {
             List<DirectoryInfo> directoryInfos = new ArrayList<DirectoryInfo>();
             for (Source source : sources) {
                 File baseDirectory = source.getBaseDirectory();
-                int baseDirectoryPathLength = 0;
+                int baseDirectoryPathLength;
                 String baseDirectoryPath = baseDirectory.getPath();
                 if (baseDirectoryPath.endsWith(File.separator)) {
                     // baseDirectory is a file system root, e.g.
@@ -459,7 +465,6 @@ public class FileCopier {
         }
 
         barrier = new CyclicBarrier(destinationCount, new Runnable() {
-
             @Override
             public void run() {
 
@@ -494,7 +499,7 @@ public class FileCopier {
                     transferVolume = Math.min(slice, sourceLength - position);
                     if (LOGGER.isLoggable(Level.FINEST)) {
                         LOGGER.log(Level.FINEST,
-                                "position: {0}, slice = {1} byte, "
+                                "current position: {0}, slice = {1} byte, "
                                 + "transferVolume = {2} byte",
                                 new Object[]{
                                     NUMBER_FORMAT.format(position),
@@ -512,7 +517,7 @@ public class FileCopier {
         transferVolume = Math.min(slice, sourceLength);
         if (LOGGER.isLoggable(Level.FINEST)) {
             LOGGER.log(Level.FINEST,
-                    "position: {0}, slice = {1} byte, "
+                    "start position: {0}, slice = {1} byte, "
                     + "transferVolume = {2} byte",
                     new Object[]{
                         NUMBER_FORMAT.format(position),
@@ -524,16 +529,21 @@ public class FileCopier {
 
         ExecutorService executorService = Executors.newCachedThreadPool();
         ExecutorCompletionService<Void> completionService =
-                new ExecutorCompletionService<Void>(
-                executorService);
+                new ExecutorCompletionService<Void>(executorService);
         for (Transferrer transferrer : transferrers) {
+            LOGGER.log(Level.FINEST,
+                    "submitting Transferrer for execution in thread pool");
             completionService.submit(transferrer, null);
         }
 
         // wait until all transferrers completed their execution
         for (int i = 0; i < destinationCount; i++) {
             try {
+                LOGGER.log(Level.FINEST,
+                        "waiting for Transferrer {0} to finish", i);
                 completionService.take();
+                LOGGER.log(Level.FINEST,
+                        "Transferrer {0} finished", i);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
