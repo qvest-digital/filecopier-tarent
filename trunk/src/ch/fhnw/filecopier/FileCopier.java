@@ -101,6 +101,7 @@ public class FileCopier {
     private long transferVolume;
     private long sliceStartTime;
     private CyclicBarrier barrier;
+    private BarrierAction barrierAction = new BarrierAction();
 
     /**
      * Add a listener for property changes.
@@ -433,9 +434,11 @@ public class FileCopier {
             stringBuilder.append("Copying file \"");
             stringBuilder.append(source.toString());
             stringBuilder.append("\" to the following destinations:\n");
-            for (File destination : destinations) {
-                stringBuilder.append(destination.getPath());
-                stringBuilder.append('\n');
+            for (int i = 0, length = destinations.length; i < length; i++) {
+                stringBuilder.append(destinations[i].getPath());
+                if (i != length - 1) {
+                    stringBuilder.append('\n');
+                }
             }
             LOGGER.info(stringBuilder.toString());
         }
@@ -464,63 +467,15 @@ public class FileCopier {
                     new FileOutputStream(destinations[i]).getChannel());
         }
 
-        barrier = new CyclicBarrier(destinationCount, new Runnable() {
-            @Override
-            public void run() {
-
-                // inform property listeners about copied data volume
-                position += transferVolume;
-                copiedBytes += transferVolume;
-                propertyChangeSupport.firePropertyChange(
-                        BYTE_COUNTER_PROPERTY, oldCopiedBytes, copiedBytes);
-                oldCopiedBytes = copiedBytes;
-
-                // determine next slice size before releasing the barrier
-                long stop = System.currentTimeMillis();
-                long time = stop - sliceStartTime;
-                if (LOGGER.isLoggable(Level.FINEST)) {
-                    LOGGER.log(Level.FINEST, "time = {0} ms",
-                            NUMBER_FORMAT.format(time));
-                }
-                if (time != 0) {
-                    // bandwidth = transferVolume / time
-                    // newSlice = bandwith * WANTED_TIME
-                    long newSlice = (transferVolume * WANTED_TIME) / time;
-                    // just using newSlice here leads to overmodulation
-                    // doubling or halving is the slower (and probably better)
-                    // approach
-                    long doubleSlice = 2 * slice;
-                    long halfSlice = slice / 2;
-                    if (newSlice > doubleSlice) {
-                        slice = doubleSlice;
-                    } else if ((newSlice < halfSlice) && (halfSlice > 0)) {
-                        slice = halfSlice;
-                    }
-                    transferVolume = Math.min(slice, sourceLength - position);
-                    if (LOGGER.isLoggable(Level.FINEST)) {
-                        LOGGER.log(Level.FINEST,
-                                "current position: {0}, slice = {1} byte, "
-                                + "transferVolume = {2} byte",
-                                new Object[]{
-                                    NUMBER_FORMAT.format(position),
-                                    NUMBER_FORMAT.format(slice),
-                                    NUMBER_FORMAT.format(transferVolume)
-                                });
-                    }
-                }
-                sliceStartTime = System.currentTimeMillis();
-            }
-        });
+        barrier = new CyclicBarrier(destinationCount, barrierAction);
 
         // start the transfer process
         position = 0;
         transferVolume = Math.min(slice, sourceLength);
         if (LOGGER.isLoggable(Level.FINEST)) {
             LOGGER.log(Level.FINEST,
-                    "start position: {0}, slice = {1} byte, "
-                    + "transferVolume = {2} byte",
+                    "starting with slice = {0} byte, transferVolume = {1} byte",
                     new Object[]{
-                        NUMBER_FORMAT.format(position),
                         NUMBER_FORMAT.format(slice),
                         NUMBER_FORMAT.format(transferVolume)
                     });
@@ -531,24 +486,72 @@ public class FileCopier {
         ExecutorCompletionService<Void> completionService =
                 new ExecutorCompletionService<Void>(executorService);
         for (Transferrer transferrer : transferrers) {
-            LOGGER.log(Level.FINEST,
-                    "submitting Transferrer for execution in thread pool");
             completionService.submit(transferrer, null);
         }
 
         // wait until all transferrers completed their execution
         for (int i = 0; i < destinationCount; i++) {
             try {
-                LOGGER.log(Level.FINEST,
-                        "waiting for Transferrer {0} to finish", i);
                 completionService.take();
-                LOGGER.log(Level.FINEST,
-                        "Transferrer {0} finished", i);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
         executorService.shutdown();
+    }
+
+    private class BarrierAction implements Runnable {
+
+        @Override
+        public void run() {
+            // inform property listeners about copied data volume
+            position += transferVolume;
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST,
+                        "new position: {0}", NUMBER_FORMAT.format(position));
+            }
+            copiedBytes += transferVolume;
+            propertyChangeSupport.firePropertyChange(
+                    BYTE_COUNTER_PROPERTY, oldCopiedBytes, copiedBytes);
+            oldCopiedBytes = copiedBytes;
+
+            // update slice/transferVolume
+            long stop = System.currentTimeMillis();
+            long time = stop - sliceStartTime;
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "time = {0} ms",
+                        NUMBER_FORMAT.format(time));
+            }
+            if (time == 0) {
+                // if time was "0" we can not update the slice/transferVolume
+                // values because we then would divide by zero...
+            } else {
+                // bandwidth = transferVolume / time
+                // newSlice = bandwith * WANTED_TIME
+                long newSlice = (transferVolume * WANTED_TIME) / time;
+                // just using newSlice here leads to overmodulation
+                // doubling or halving is the slower (and probably better)
+                // approach
+                long doubleSlice = 2 * slice;
+                long halfSlice = slice / 2;
+                if (newSlice > doubleSlice) {
+                    slice = doubleSlice;
+                } else if ((newSlice < halfSlice) && (halfSlice > 0)) {
+                    slice = halfSlice;
+                }
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "slice = {0} byte",
+                            NUMBER_FORMAT.format(slice));
+                }
+
+                transferVolume = Math.min(slice, sourceLength - position);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "transferVolume = {0} byte",
+                            NUMBER_FORMAT.format(transferVolume));
+                }
+            }
+            sliceStartTime = System.currentTimeMillis();
+        }
     }
 
     private class Transferrer extends Thread {
