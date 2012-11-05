@@ -1,6 +1,6 @@
-#Tue, 05 Apr 2011 15:18:23 +0200
+#Mon, 05 Nov 2012 10:44:58 +0100
 #Build Number for ANT. Do not edit!
-#Tue Apr 05 15:18:23 CEST 2011
+#Mon Nov 05 10:44:58 CET 2012
 jfcl_version=0.9.7
-build.number=53
-timestamp=20110405151823
+build.number=59
+timestamp=20121105104458
