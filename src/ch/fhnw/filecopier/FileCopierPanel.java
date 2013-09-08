@@ -308,7 +308,7 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
         passedTimeLabel.setText(getTimeString(timeSpent));
 
         transferredDataVolumeLabel.setText(
-                getDataVolumeString(bytesCopied, 1));
+                getDataVolumeString(bytesCopied, 3));
 
         long estimate = (timeSpent * byteCount) / bytesCopied;
         estimatedDurationLabel.setText(getTimeString(estimate));
@@ -317,7 +317,7 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
         estimatedRemainingTimeLabel.setText(getTimeString(remaining));
 
         missingDataVolumeLabel.setText(
-                getDataVolumeString(byteCount - bytesCopied, 1));
+                getDataVolumeString(byteCount - bytesCopied, 3));
 
         updateProgressBar();
 
