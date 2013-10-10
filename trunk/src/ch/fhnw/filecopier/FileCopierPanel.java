@@ -307,8 +307,8 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
         long timeSpent = currentTime - startTime;
         passedTimeLabel.setText(getTimeString(timeSpent));
 
-        transferredDataVolumeLabel.setText(
-                getDataVolumeString(bytesCopied, 3));
+        setVisibleChangeDataVolumeLabel(
+                transferredDataVolumeLabel, bytesCopied);
 
         long estimate = (timeSpent * byteCount) / bytesCopied;
         estimatedDurationLabel.setText(getTimeString(estimate));
@@ -316,15 +316,30 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
         long remaining = estimate - timeSpent;
         estimatedRemainingTimeLabel.setText(getTimeString(remaining));
 
-        missingDataVolumeLabel.setText(
-                getDataVolumeString(byteCount - bytesCopied, 3));
+        setVisibleChangeDataVolumeLabel(
+                missingDataVolumeLabel, bytesCopied);
 
         updateProgressBar();
 
         estimatedStopTimeLabel.setText(
                 dateFormat.format(currentTime + remaining));
     }
-
+    
+    private void setVisibleChangeDataVolumeLabel(
+            JLabel label, long dataVolume) {
+        String oldText = label.getText();
+        String newText = null;
+        // try up to 3 fraction digits to get a different text
+        for (int i = 0; i < 4; i++) {
+            newText = getDataVolumeString(dataVolume, i);
+            if (!oldText.equals(newText)) {
+                // good, there was a visible change
+                break;
+            }
+        }
+        label.setText(newText);
+    }
+    
     private static String getDataVolumeString(
             long bytes, int fractionDigits) {
         if (bytes >= KILO) {
