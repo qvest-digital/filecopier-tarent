@@ -10,10 +10,16 @@ public class ChangeLabel extends JLabel {
             Logger.getLogger(ChangeLabel.class.getName());
     private long previousDataVolume;
     private int previousFractionDigits;
+    private boolean fresh = true;
 
     public void setDataVolume(long dataVolume) {
         LOGGER.log(Level.INFO, "previousDataVolume: {0}, dataVolume: {1}",
                 new Object[]{previousDataVolume, dataVolume});
+        if ((previousDataVolume == dataVolume) && !fresh) {
+            LOGGER.info("previousDataVolume == dataVolume");
+            return;
+        }
+        fresh = false;
 
         String newText = FileCopierPanel.getDataVolumeString(dataVolume, 0);
 
