@@ -64,7 +64,7 @@ public class ChangeLabelTest {
         changeLabel.setDataVolume(newVolume);
         assertEquals(FileCopierPanel.getDataVolumeString(newVolume, 0),
                 changeLabel.getText());
-        
+
         // only integer change
         changeLabel.setDataVolume(0);
         newVolume = (long) (800.11 * FileCopierPanel.MEGA);
@@ -74,6 +74,14 @@ public class ChangeLabelTest {
         newVolume = (long) (810.111 * FileCopierPanel.MEGA);
         changeLabel.setDataVolume(newVolume);
         assertEquals(FileCopierPanel.getDataVolumeString(newVolume, 0),
-                changeLabel.getText());        
+                changeLabel.getText());
+
+        // test no change at all
+        changeLabel.setDataVolume(0);
+        newVolume = (long) (1.11 * FileCopierPanel.MEGA);
+        changeLabel.setDataVolume(newVolume);
+        changeLabel.setDataVolume(newVolume);
+        assertEquals(FileCopierPanel.getDataVolumeString(newVolume, 0),
+                changeLabel.getText());
     }
 }
