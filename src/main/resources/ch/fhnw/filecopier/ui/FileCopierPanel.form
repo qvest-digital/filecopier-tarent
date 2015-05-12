@@ -4,7 +4,7 @@
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
-    <AuxValue name="FormSettings_formBundle" type="java.lang.String" value="ch/fhnw/filecopier/Strings"/>
+    <AuxValue name="FormSettings_formBundle" type="java.lang.String" value="ch/fhnw/filecopier/i18n/Strings"/>
     <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
     <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="true"/>
@@ -36,8 +36,8 @@
             <Component class="javax.swing.JLabel" name="passedTimeLabel">
               <Properties>
                 <Property name="text" type="java.lang.String" value="0:00" noResource="true"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="ch/fhnw/filecopier/Strings.properties" key="FileCopierPanel.passedTimeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.ch.fhnw.filecopier.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="ch/fhnw/filecopier/i18n/Strings.properties" key="FileCopierPanel.passedTimeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Constraints>
@@ -49,8 +49,8 @@
             <Component class="ch.fhnw.filecopier.ChangeLabel" name="transferredDataVolumeLabel">
               <Properties>
                 <Property name="text" type="java.lang.String" value="0 Byte" noResource="true"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="ch/fhnw/filecopier/Strings.properties" key="FileCopierPanel.transferredDataVolumeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.ch.fhnw.filecopier.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="ch/fhnw/filecopier/i18n/Strings.properties" key="FileCopierPanel.transferredDataVolumeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Constraints>
@@ -77,8 +77,8 @@
                 </Property>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value="0:00" noResource="true"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="ch/fhnw/filecopier/Strings.properties" key="FileCopierPanel.estimatedDurationLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.ch.fhnw.filecopier.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="ch/fhnw/filecopier/i18n/Strings.properties" key="FileCopierPanel.estimatedDurationLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Constraints>
@@ -91,8 +91,8 @@
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value="0 Byte" noResource="true"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="ch/fhnw/filecopier/Strings.properties" key="FileCopierPanel.dataVolumeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.ch.fhnw.filecopier.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="ch/fhnw/filecopier/i18n/Strings.properties" key="FileCopierPanel.dataVolumeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Constraints>
@@ -119,8 +119,8 @@
                 </Property>
                 <Property name="horizontalAlignment" type="int" value="4"/>
                 <Property name="text" type="java.lang.String" value="0:00" noResource="true"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="ch/fhnw/filecopier/Strings.properties" key="FileCopierPanel.estimatedRemainingTimeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.ch.fhnw.filecopier.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="ch/fhnw/filecopier/i18n/Strings.properties" key="FileCopierPanel.estimatedRemainingTimeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Constraints>
@@ -133,8 +133,8 @@
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="4"/>
                 <Property name="text" type="java.lang.String" value="0 Byte" noResource="true"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="ch/fhnw/filecopier/Strings.properties" key="FileCopierPanel.missingDataVolumeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.ch.fhnw.filecopier.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="ch/fhnw/filecopier/i18n/Strings.properties" key="FileCopierPanel.missingDataVolumeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Constraints>
@@ -169,8 +169,8 @@
         <Component class="javax.swing.JLabel" name="startTimeLabel">
           <Properties>
             <Property name="text" type="java.lang.String" value="0:00" noResource="true"/>
-            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="ch/fhnw/filecopier/Strings.properties" key="FileCopierPanel.startTimeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.ch.fhnw.filecopier.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="ch/fhnw/filecopier/i18n/Strings.properties" key="FileCopierPanel.startTimeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
           <Constraints>
@@ -191,8 +191,8 @@
             </Property>
             <Property name="horizontalAlignment" type="int" value="4"/>
             <Property name="text" type="java.lang.String" value="0:00" noResource="true"/>
-            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="ch/fhnw/filecopier/Strings.properties" key="FileCopierPanel.estimatedStopTimeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.ch.fhnw.filecopier.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="ch/fhnw/filecopier/i18n/Strings.properties" key="FileCopierPanel.estimatedStopTimeLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
           <Constraints>

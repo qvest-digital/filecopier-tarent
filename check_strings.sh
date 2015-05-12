@@ -1,5 +1,5 @@
 #!/bin/sh
-for BUNDLE in src/ch/fhnw/filecopier/Strings*
+for BUNDLE in src/main/resources/ch/fhnw/filecopier/i18n/Strings*
 do
 	echo "processing bundle ${BUNDLE}"
 	while read LINE
