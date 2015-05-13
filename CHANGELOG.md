@@ -2,6 +2,9 @@
 
 ## 0.9.9 (unreleased)
 
+### Features:
+    - package files into an zip-archive
+
 ### Changes
     - change to maven project
     - restore strings for progress

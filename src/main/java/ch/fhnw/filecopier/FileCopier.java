@@ -38,6 +38,8 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * A class for copying files and directories. It can be used headless. This
@@ -98,6 +100,7 @@ public class FileCopier {
     private long position;
     private long sourceLength;
     private long slice = 1048576; // 1 MiB
+    private int bufferSlice = 2048;
     private long transferVolume;
     private long sliceStartTime;
     private CyclicBarrier barrier;
@@ -244,7 +247,7 @@ public class FileCopier {
             String[] destinations = copyJob.getDestinations();
             for (String destination : destinations) {
                 File destinationFile = new File(destination);
-                if (destinationFile.isFile()) {
+                if (destinationFile.isFile() && !copyJob.isZip()) {
                     if (sourceCount == 1) {
                         File sourceFile =
                                 directoryInfos.get(0).getFiles().get(0);
@@ -285,6 +288,10 @@ public class FileCopier {
                 continue;
             }
 
+            ZipOutputStream zos = null;
+            if (copyJob.isZip()) {
+                zos = getZOS(copyJob.getDirectoryInfos().get(0), copyJob.getDestinations());
+            }
             for (DirectoryInfo directoryInfo : copyJob.getDirectoryInfos()) {
                 for (File sourceFile : directoryInfo.getFiles()) {
                     File[] destinationFiles = getDestinationFiles(
@@ -317,9 +324,16 @@ public class FileCopier {
                         }
                     } else {
                         // create target files in parrallel
-                        copyFile(sourceFile, destinationFiles);
+                        if (copyJob.isZip()) {
+                            copyZIPFile(sourceFile, zos, destinationFiles);
+                        } else {
+                            copyFile(sourceFile, destinationFiles);
+                        }
                     }
                 }
+            }
+            if (zos != null) {
+                zos.close();
             }
         }
 
@@ -333,6 +347,20 @@ public class FileCopier {
         state = State.END;
         propertyChangeSupport.firePropertyChange(
                 STATE_PROPERTY, previousState, state);
+    }
+
+    private ZipOutputStream getZOS(DirectoryInfo directoryInfo, String[] destinations) throws IOException {
+        // ensure that all destination files exist before starting the transfer
+        // processing
+        File[] destinationFiles = getDestinationFiles(directoryInfo.getBaseDirectory(),
+                directoryInfo.getFiles().get(0), destinations);
+        for (File destination : destinationFiles) {
+            if (!destination.exists()) {
+                destination.getParentFile().mkdirs();
+                destination.createNewFile();
+            }
+        }
+        return new ZipOutputStream(new FileOutputStream(destinationFiles[0]));
     }
 
     private File[] getDestinationFiles(
@@ -500,6 +528,74 @@ public class FileCopier {
         executorService.shutdown();
     }
 
+    private void copyZIPFile(File source, ZipOutputStream zos, File... destinations)
+            throws IOException {
+
+        // some initial logging
+        if (LOGGER.isLoggable(Level.INFO)) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("Copying file \"");
+            stringBuilder.append(source.toString());
+            stringBuilder.append("\" to the following destinations:\n");
+            for (int i = 0, length = 1; i < length; i++) {
+                stringBuilder.append(destinations[i].getPath());
+                if (i != length - 1) {
+                    stringBuilder.append('\n');
+                }
+            }
+            LOGGER.info(stringBuilder.toString());
+        }
+
+        // quick return when source is an empty file
+        sourceLength = source.length();
+        if (sourceLength == 0) {
+            return;
+        }
+
+     // create a Transferrer thread for every destination
+        int destinationCount = destinations.length;
+        final ZIPTransferrer[] transferrers = new ZIPTransferrer[destinationCount];
+        for (int i = 0; i < destinationCount; i++) {
+            transferrers[i] = new ZIPTransferrer(
+                    source,
+                    zos);
+        }
+
+        barrier = new CyclicBarrier(destinationCount, barrierAction);
+
+        // start the transfer process
+        position = 0;
+        slice = bufferSlice;
+        transferVolume = Math.min(slice, sourceLength);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST,
+                    "starting with slice = {0} byte, transferVolume = {1} byte",
+                    new Object[]{
+                        NUMBER_FORMAT.format(slice),
+                        NUMBER_FORMAT.format(transferVolume)
+                    });
+        }
+        sliceStartTime = System.currentTimeMillis();
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        ExecutorCompletionService<Void> completionService =
+                new ExecutorCompletionService<Void>(executorService);
+        for (ZIPTransferrer transferrer : transferrers) {
+            completionService.submit(transferrer, null);
+        }
+
+        // wait until all transferrers completed their execution
+        for (int i = 0; i < destinationCount; i++) {
+            try {
+                completionService.take();
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        }
+        executorService.shutdown();
+    }
+
+
     private class BarrierAction implements Runnable {
 
         @Override
@@ -614,4 +710,66 @@ public class FileCopier {
             }
         }
     }
+
+    private class ZIPTransferrer extends Thread {
+
+        private final File source;
+        private final ZipOutputStream zos;
+
+        public ZIPTransferrer(File source, ZipOutputStream zos) {
+            this.source = source;
+            this.zos = zos;
+        }
+
+        @Override
+        public void run() {
+            byte[] buffer = new byte[bufferSlice];
+            FileInputStream fis = null;
+
+            try {
+                zos.putNextEntry(new ZipEntry(source.getName()));
+                fis = new FileInputStream(source);
+                // transfer the currently planned volume
+                int transferred = 0;
+                int length;
+                while ((length = fis.read(buffer)) > 0) {
+                    if (LOGGER.isLoggable(Level.FINEST)) {
+                        long count = transferVolume - length;
+                        LOGGER.log(Level.FINEST, "already transferred = " + "{0} byte, to be transferred = {1} byte",
+                                new Object[] { NUMBER_FORMAT.format(transferred), NUMBER_FORMAT.format(count) });
+                    }
+                    zos.write(buffer, 0, length);
+                    long tmpTransferred = length;
+                    if (LOGGER.isLoggable(Level.FINEST)) {
+                        LOGGER.log(Level.FINEST, "{0} byte transferred", NUMBER_FORMAT.format(tmpTransferred));
+                    }
+                    transferred += tmpTransferred;
+                    // wait for all other Transferrers to finish their slice
+                    barrier.await();
+                }
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "could not transfer data", ex);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (BrokenBarrierException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    zos.closeEntry();
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE,
+                            "could not close destination channel", ex);
+                }
+                try {
+                    if (fis != null) {
+                        fis.close();
+                    }
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE,
+                            "could not close source channel", ex);
+                }
+            }
+        }
+    }
 }
+
