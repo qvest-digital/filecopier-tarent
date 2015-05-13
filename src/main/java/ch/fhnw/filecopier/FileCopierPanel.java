@@ -51,9 +51,9 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
     public static final long TERA = GIGA * 1024;
     public static final int HOUR = 3600000;
     public final static NumberFormat numberFormat = NumberFormat.getInstance();
-    
+
     private static final ResourceBundle strings =
-            ResourceBundle.getBundle("ch/fhnw/filecopier/Strings");
+            ResourceBundle.getBundle("ch/fhnw/filecopier/i18n/Strings");
     // the sum of the size of all files to copy
     private long byteCount;
     // the number of bytes already copied
@@ -92,7 +92,6 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
         progressBar.setString(null);
         startTimeLabel.setText(" ");
         estimatedStopTimeLabel.setText(" ");
-
     }
 
     /**
@@ -242,7 +241,7 @@ public class FileCopierPanel extends JPanel implements PropertyChangeListener {
         leftPanel.setLayout(new java.awt.GridBagLayout());
 
         passedTimeLabel.setText("0:00"); // NOI18N
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("ch/fhnw/filecopier/Strings"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("ch/fhnw/filecopier/i18n/Strings"); // NOI18N
         passedTimeLabel.setToolTipText(bundle.getString("FileCopierPanel.passedTimeLabel.toolTipText")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;

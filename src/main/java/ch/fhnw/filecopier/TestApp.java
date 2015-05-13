@@ -49,22 +49,23 @@ public class TestApp extends javax.swing.JFrame {
                     // Unix example
                     Source[] sources = new Source[]{
                         // all files from directory /home/user/source1/
-                        new Source("/home/user/source1/"),
+                        new Source("/tmp/filecopiertest/source1/"),
                         // all *.java files from directory /home/user/source2/
-                        new Source("/home/user/source2/", ".*\\.java")
+                        new Source("/tmp/filecopiertest/source2/", ".*\\.java")
                     };
                     String[] destinations = new String[]{
-                        "/home/user/destination1",
-                        "/home/user/destination2"
+                        "/tmp/filecopiertest/destination1",
+                        "/tmp/filecopiertest/destination2"
                     };
                     CopyJob unixCopyJob = new CopyJob(sources, destinations);
+                    fileCopier.copy(unixCopyJob);
 
                     // Windows example
-                    CopyJob windowsCopyJob = new CopyJob(
-                            new Source[]{new Source("C:\\Test.txt")},
-                            new String[]{"C:\\Test2.txt"});
+//                    CopyJob windowsCopyJob = new CopyJob(
+//                            new Source[]{new Source("C:\\Test.txt")},
+//                            new String[]{"C:\\Test2.txt"});
+//                    fileCopier.copy(windowsCopyJob);
 
-                    fileCopier.copy(unixCopyJob, windowsCopyJob);
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
@@ -73,7 +74,7 @@ public class TestApp extends javax.swing.JFrame {
 
             @Override
             protected void done() {
-                System.out.println("fertsch!");
+                System.out.println("Done!");
             }
         };
         copier.execute();
@@ -88,7 +89,7 @@ public class TestApp extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        fileCopierPanel = new ch.fhnw.filecopier.FileCopierPanel();
+        fileCopierPanel = new FileCopierPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -119,6 +120,6 @@ public class TestApp extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private ch.fhnw.filecopier.FileCopierPanel fileCopierPanel;
+    private FileCopierPanel fileCopierPanel;
     // End of variables declaration//GEN-END:variables
 }
