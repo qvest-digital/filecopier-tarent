@@ -32,6 +32,7 @@ public class CopyJob {
     private final Source[] sources;
     private final String[] destinations;
     private List<DirectoryInfo> directoryInfos;
+    private boolean zip;
 
     /**
      * A class representing a copy job.
@@ -39,8 +40,19 @@ public class CopyJob {
      * @param sources the sources
      */
     public CopyJob(Source[] sources, String[] destinations) {
+        this(sources, destinations, false);
+    }
+
+    /**
+     * A class representing a copy job for zip files.
+     * @param sources
+     * @param destinations
+     * @param zip
+     */
+    public CopyJob(Source[] sources, String[] destinations, boolean zip) {
         this.sources = sources;
         this.destinations = destinations;
+        this.zip = zip;
     }
 
     /**
@@ -73,5 +85,9 @@ public class CopyJob {
      */
     public List<DirectoryInfo> getDirectoryInfos() {
         return directoryInfos;
+    }
+
+    public boolean isZip() {
+        return zip;
     }
 }

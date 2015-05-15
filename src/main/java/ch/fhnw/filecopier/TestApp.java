@@ -57,7 +57,7 @@ public class TestApp extends javax.swing.JFrame {
                         "/tmp/filecopiertest/destination1",
                         "/tmp/filecopiertest/destination2"
                     };
-                    CopyJob unixCopyJob = new CopyJob(sources, destinations);
+                    CopyJob unixCopyJob = new CopyJob(sources, destinations, false);
                     fileCopier.copy(unixCopyJob);
 
                     // Windows example
