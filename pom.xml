@@ -4,7 +4,7 @@
 
     <groupId>de.tarent</groupId>
     <artifactId>filecopier-tarent</artifactId>
-    <version>0.9.9-SNAPSHOT</version>
+    <version>0.9.9</version>
 
     <name>FileCopier-tarent</name>
     <description>
@@ -23,7 +23,7 @@
         <connection>scm:git:git@github.com:tarent/filecopier-tarent.git</connection>
         <developerConnection>scm:git:git@github.com:tarent/filecopier-tarent.git</developerConnection>
         <url>git@github.com:tarent/filecopier-tarent.git</url>
-        <tag>HEAD</tag>
+        <tag>filecopier-tarent-0.9.9</tag>
     </scm>
 
     <build>
