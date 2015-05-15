@@ -1,9 +1,8 @@
 # Changelog
 
-## 0.9.8 (2015-05-13)
+## 0.9.9 (unreleased)
 
 ### Changes
-
     - change to maven project
     - restore strings for progress
     - deactivate same broken tests
